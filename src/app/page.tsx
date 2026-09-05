@@ -1,12 +1,6 @@
-import Image from "next/image";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-
-type Member = {
-  id: string;
-  fullName: string;
-  district: number;
-  photoUrl: string | null;
-};
+import { MemberAvatar, type Member } from "@/components/MemberAvatar";
 
 async function getDashboardData() {
   const members = await prisma.councilMember.findMany();
@@ -14,41 +8,6 @@ async function getDashboardData() {
     orderBy: { voteDate: 'desc' },
   });
   return { members, latestDecision };
-}
-
-function initials(fullName: string) {
-  return fullName
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function MemberAvatar({ member }: { member: Member }) {
-  return (
-    <div className="group relative w-24 h-24 rounded-full ring-2 ring-transparent hover:ring-pdx-green transition cursor-pointer">
-      {member.photoUrl ? (
-        <Image
-          src={member.photoUrl}
-          alt={member.fullName}
-          width={96}
-          height={96}
-          priority
-          className="w-full h-full rounded-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full rounded-full bg-pdx-blue/10 text-pdx-blue flex items-center justify-center font-semibold">
-          {initials(member.fullName)}
-        </div>
-      )}
-      <div className="absolute inset-0 rounded-full bg-black/70 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-center px-2">
-        <span className="text-white text-[11px] font-semibold leading-tight">
-          {member.fullName}
-        </span>
-      </div>
-    </div>
-  );
 }
 
 export default async function Home() {
@@ -66,18 +25,22 @@ export default async function Home() {
         <p className="text-xl font-medium text-gray-900 mb-6">
           {latestDecision?.title || "No recent decisions found."}
         </p>
-        <div className="flex gap-3">
-          <button
-            className="bg-pdx-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
-          >
-            Read Summary
-          </button>
-          <button
-            className="bg-pdx-yellow text-gray-900 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-yellow-500 transition"
-          >
-            See Vote Breakdown
-          </button>
-        </div>
+        {latestDecision && (
+          <div className="flex gap-3">
+            <Link
+              href={`/documents/${latestDecision.docNumber}`}
+              className="bg-pdx-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+            >
+              Read Summary
+            </Link>
+            <Link
+              href={`/documents/${latestDecision.docNumber}#votes`}
+              className="bg-pdx-yellow text-gray-900 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-yellow-500 transition"
+            >
+              See Vote Breakdown
+            </Link>
+          </div>
+        )}
       </section>
 
       <section>
