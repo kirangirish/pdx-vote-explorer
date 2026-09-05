@@ -69,3 +69,4 @@ public/members/                Council member headshots
 | Member avatars show initials instead of photos | `public/members/*.png` missing — check `git status`, they should be committed |
 | `EADDRINUSE` / port 3000 already in use | Another `next dev` is running — `pkill -f "next dev"` or run `next dev -p 3001` |
 | Dashboard shows no members/decisions | `DATABASE_URL` is pointing somewhere other than `prisma/dev.db` (e.g. a stale local override) |
+| Console warning about a hydration mismatch mentioning an unfamiliar attribute on `<body>` (e.g. `cz-shortcut-listen`) | A browser extension (ColorZilla and similar tools do this) is injecting attributes into the DOM before React hydrates. Harmless and unrelated to this app's code — confirm by reloading in an incognito window with extensions disabled |
