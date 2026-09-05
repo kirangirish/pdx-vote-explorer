@@ -6,6 +6,7 @@ export type Member = {
   slug: string;
   fullName: string;
   district: number;
+  governingBody: string;
   photoUrl: string | null;
 };
 

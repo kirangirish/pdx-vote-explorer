@@ -9,27 +9,34 @@ datasource db {
   provider = "sqlite"
 }
 
+// "portland_council" | "multnomah_county" -- two separate bodies with their
+// own district numbering (a Portland District 1 and a Multnomah District 1
+// cover different areas and different people), so every query that groups
+// or filters by district MUST also scope by governingBody or it will
+// silently mix the two together.
 model CouncilMember {
-  id         String       @id @default(uuid())
-  slug       String       @unique // URL-friendly identifier, e.g. "angelita-morillo"; also matches public/members/{slug}.png
-  fullName   String       @map("full_name")
-  district   Int          // 1-4 for a geographic council district, 0 for the Mayor (citywide, not district-bound)
-  photoUrl   String?      @map("photo_url")
-  bioSummary String?      @map("bio_summary")
-  votes      MemberVote[]
+  id             String       @id @default(uuid())
+  slug           String       @unique // URL-friendly identifier, e.g. "angelita-morillo"; also matches public/members/{slug}.png
+  governingBody  String       @default("portland_council") @map("governing_body")
+  fullName       String       @map("full_name")
+  district       Int          // 1-4 for a geographic district, 0 for an at-large/citywide seat (Portland's Mayor, Multnomah's Chair)
+  photoUrl       String?      @map("photo_url")
+  bioSummary     String?      @map("bio_summary")
+  votes          MemberVote[]
 
   @@map("council_members")
 }
 
 model CouncilDocument {
-  docNumber    String       @id @map("doc_number") // e.g., "2026-280"
-  title        String
-  voteDate     DateTime     @map("vote_date")
-  aiHeadline   String?      @map("ai_headline")
-  aiSummary    String?      @map("ai_summary")
-  categoryTags String?      @map("category_tags") // Stored as comma-separated or JSON string for simplicity
-  sourceUrl    String?      @map("source_url") // the actual portland.gov record this document/summary cites
-  votes        MemberVote[]
+  docNumber     String       @id @map("doc_number") // Portland: the real doc number, e.g. "2026-280". Multnomah: synthesized as "{meetingDate}-{itemLabel}", e.g. "2026-09-03-R.2", since county agenda item labels are only unique within one meeting.
+  governingBody String       @default("portland_council") @map("governing_body")
+  title         String
+  voteDate      DateTime     @map("vote_date")
+  aiHeadline    String?      @map("ai_headline")
+  aiSummary     String?      @map("ai_summary")
+  categoryTags  String?      @map("category_tags") // Stored as comma-separated or JSON string for simplicity
+  sourceUrl     String?      @map("source_url") // the actual government record (portland.gov or the Multnomah minutes PDF) this document/summary cites
+  votes         MemberVote[]
 
   @@map("council_documents")
 }

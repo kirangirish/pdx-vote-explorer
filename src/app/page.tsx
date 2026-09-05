@@ -3,9 +3,16 @@ import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
 import { parseCategoryTags } from "@/lib/votes";
 
+// This page is Portland City Council only -- district numbers 1-4 mean
+// something different for Multnomah County, so every query here must stay
+// scoped to governingBody: "portland_council" or the district grid below
+// would silently mix commissioners in with councilors.
 async function getDashboardData() {
-  const members = await prisma.councilMember.findMany();
+  const members = await prisma.councilMember.findMany({
+    where: { governingBody: "portland_council" },
+  });
   const latestDecision = await prisma.councilDocument.findFirst({
+    where: { governingBody: "portland_council" },
     orderBy: { voteDate: 'desc' },
   });
   return { members, latestDecision };

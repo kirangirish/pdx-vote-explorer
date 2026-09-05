@@ -19,10 +19,12 @@ from parser import parse_votes_page
 from db import get_connection, save_records, upsert_enrichment
 from enrich import enrich_document
 from enrichment_cache import load_cache, save_cache
+from roster import lookup as roster_lookup
 
 load_dotenv("../.env")
 
 BASE_URL = "https://www.portland.gov/council/votes"
+PORTLAND_GOV_BASE = "https://www.portland.gov"
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -30,6 +32,17 @@ HEADERS = {
     )
 }
 DEFAULT_DB_PATH = "../prisma/dev.db"
+GOVERNING_BODY = "portland_council"
+
+
+def resolve_member(member_name: str, record: dict) -> dict:
+    entry = roster_lookup(member_name)
+    parsed_district = record.get("district")
+    return {
+        "slug": record.get("member_slug") or entry["slug"],
+        "district": parsed_district if parsed_district is not None else entry["district"],
+        "photo_url": f"/members/{entry['slug']}.{entry['ext']}",
+    }
 
 
 def fetch_page(page: int, retries: int = 3) -> str:
@@ -80,10 +93,12 @@ def main():
         return
 
     doc_titles = {r["doc_number"]: r["title"] for r in all_records}
+    for r in all_records:
+        r["source_url"] = f"{PORTLAND_GOV_BASE}{r['doc_url']}" if r.get("doc_url") else None
 
     conn = get_connection(args.db)
     try:
-        summary = save_records(conn, all_records)
+        summary = save_records(conn, all_records, resolve_member, GOVERNING_BODY)
 
         enriched, enrich_failures, cache_hits = 0, 0, 0
         if not args.no_ai and summary["needs_enrichment"]:

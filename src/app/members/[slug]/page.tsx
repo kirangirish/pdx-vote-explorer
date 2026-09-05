@@ -82,7 +82,11 @@ export default async function MemberPage({
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{member.fullName}</h1>
             <p className="text-sm text-gray-500">
-              {member.district === 0 ? "Mayor — Citywide" : `District ${member.district}`}
+              {member.district !== 0
+                ? `District ${member.district}`
+                : member.governingBody === "multnomah_county"
+                  ? "Chair — Countywide"
+                  : "Mayor — Citywide"}
             </p>
           </div>
         </div>

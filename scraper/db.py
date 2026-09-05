@@ -1,12 +1,15 @@
-"""Idempotent persistence for parsed vote records. Every upsert here is a
-real ON CONFLICT DO UPDATE, so re-running the scraper corrects existing rows
-(a title cleanup, a corrected vote) instead of only ever adding new ones.
+"""Idempotent persistence for parsed vote records, shared by both scrapers
+(Portland City Council and Multnomah County). Every upsert here is a real
+ON CONFLICT DO UPDATE, so re-running a scraper corrects existing rows (a
+title cleanup, a corrected vote) instead of only ever adding new ones.
+
+Body-specific concerns (roster lookups, photo conventions, source-URL
+prefixing) live in each scraper's own module, not here -- db.py just takes
+already-resolved values plus a `governing_body` tag so a Portland district 1
+and a Multnomah district 1 never get mixed together.
 """
 
 import sqlite3
-from roster import lookup as roster_lookup
-
-PORTLAND_GOV_BASE = "https://www.portland.gov"
 
 
 def get_connection(db_path: str) -> sqlite3.Connection:
@@ -26,13 +29,20 @@ def get_existing_document(cursor, doc_number: str) -> dict | None:
     return {"title": row[0], "ai_headline": row[1]}
 
 
-def upsert_document(cursor, doc_number: str, title: str, vote_date: str, doc_url: str | None) -> None:
-    source_url = f"{PORTLAND_GOV_BASE}{doc_url}" if doc_url else None
+def upsert_document(
+    cursor,
+    doc_number: str,
+    title: str,
+    vote_date: str,
+    source_url: str | None,
+    governing_body: str = "portland_council",
+) -> None:
     cursor.execute(
-        "INSERT INTO council_documents (doc_number, title, vote_date, source_url) VALUES (?, ?, ?, ?) "
+        "INSERT INTO council_documents (doc_number, governing_body, title, vote_date, source_url) "
+        "VALUES (?, ?, ?, ?, ?) "
         "ON CONFLICT(doc_number) DO UPDATE SET title = excluded.title, vote_date = excluded.vote_date, "
         "source_url = excluded.source_url",
-        (doc_number, title, vote_date, source_url),
+        (doc_number, governing_body, title, vote_date, source_url),
     )
 
 
@@ -43,34 +53,40 @@ def upsert_enrichment(cursor, doc_number: str, headline: str, summary: str, tags
     )
 
 
-def upsert_member(cursor, member_name: str, district: int | None, parsed_slug: str | None = None) -> None:
-    roster_entry = roster_lookup(member_name)
-    resolved_district = district if district is not None else roster_entry["district"]
-    # Prefer the slug scraped straight from the member's own /council/districts/{d}/{slug}
-    # link (self-updating if a name ever changes); fall back to the static roster.
-    slug = parsed_slug or roster_entry["slug"]
-    photo_url = f"/members/{roster_entry['slug']}.{roster_entry['ext']}"
+def upsert_member(
+    cursor,
+    member_id: str,
+    slug: str,
+    full_name: str,
+    district: int,
+    photo_url: str | None,
+    governing_body: str = "portland_council",
+) -> None:
     cursor.execute(
-        "INSERT INTO council_members (id, slug, full_name, district, photo_url) VALUES (?, ?, ?, ?, ?) "
-        "ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, district = excluded.district, photo_url = excluded.photo_url",
-        (member_name, slug, member_name, resolved_district, photo_url),
+        "INSERT INTO council_members (id, slug, governing_body, full_name, district, photo_url) "
+        "VALUES (?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, district = excluded.district, "
+        "photo_url = excluded.photo_url",
+        (member_id, slug, governing_body, full_name, district, photo_url),
     )
 
 
-def upsert_vote(cursor, doc_number: str, member_name: str, vote: str) -> None:
-    vote_id = f"{doc_number}-{member_name}"
+def upsert_vote(cursor, doc_number: str, member_id: str, vote: str) -> None:
+    vote_id = f"{doc_number}-{member_id}"
     cursor.execute(
         "INSERT INTO member_votes (id, doc_number, member_id, vote) VALUES (?, ?, ?, ?) "
         "ON CONFLICT(doc_number, member_id) DO UPDATE SET vote = excluded.vote",
-        (vote_id, doc_number, member_name, vote),
+        (vote_id, doc_number, member_id, vote),
     )
 
 
-def save_records(conn: sqlite3.Connection, records: list[dict]) -> dict:
-    """Upserts every record. Returns a summary of what happened for reporting,
+def save_records(conn: sqlite3.Connection, records: list[dict], resolve_member, governing_body: str = "portland_council") -> dict:
+    """Upserts every record. `records` is a list of dicts with doc_number,
+    title, vote_date, source_url, member_name, vote (and whatever
+    `resolve_member(member_name, record) -> {"slug", "district", "photo_url"}`
+    needs from the record, e.g. a parsed district). Returns a summary
     including `needs_enrichment`: doc_numbers that are new, whose title
-    changed, or that have never been AI-enriched -- so the caller only spends
-    Gemini calls on documents that actually need it.
+    changed, or that have never been AI-enriched.
     """
     seen_docs, seen_members, seen_votes = set(), set(), set()
     needs_enrichment = []
@@ -80,10 +96,14 @@ def save_records(conn: sqlite3.Connection, records: list[dict]) -> dict:
             existing = get_existing_document(cursor, r["doc_number"])
             if existing is None or existing["title"] != r["title"] or existing["ai_headline"] is None:
                 needs_enrichment.append(r["doc_number"])
-            upsert_document(cursor, r["doc_number"], r["title"], r["vote_date"], r.get("doc_url"))
+            upsert_document(cursor, r["doc_number"], r["title"], r["vote_date"], r.get("source_url"), governing_body)
             seen_docs.add(r["doc_number"])
         if r["member_name"] not in seen_members:
-            upsert_member(cursor, r["member_name"], r["district"], r.get("member_slug"))
+            resolved = resolve_member(r["member_name"], r)
+            upsert_member(
+                cursor, r["member_name"], resolved["slug"], r["member_name"],
+                resolved["district"], resolved["photo_url"], governing_body,
+            )
             seen_members.add(r["member_name"])
         upsert_vote(cursor, r["doc_number"], r["member_name"], r["vote"])
         seen_votes.add((r["doc_number"], r["member_name"]))
