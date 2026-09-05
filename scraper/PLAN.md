@@ -40,6 +40,7 @@ Spec, decided 2026-09-04:
 
 - **Headline**: ≤ 60 characters, newspaper-style (states the action, not the doc number).
 - **Summary**: 2-3 sentences, ~8th-grade reading level. States what changed and who it affects. No jargon, no doc-number references, no procedural filler ("Council voted to approve...") — lead with the substance.
+- **Neutrality (non-negotiable)**: the model must describe what changed and who voted how — never characterize a vote as good, bad, controversial, or partisan. No adjectives implying judgment. This app is meant to help residents hold current officials accountable, including right before contested elections (see Multnomah County Chair race, Nov 3 2026) — any perceived editorializing undermines that entirely. Every generated summary is displayed with a visible "AI-generated" label linking back to the source document, never presented as unsourced fact.
 - **Category tags**: exactly 1-2 tags per document, chosen by the model from a **fixed taxonomy** (not freeform) so the eventual browse/filter UI has a stable set of categories to work with:
   1. Housing & Development
   2. Transportation & Infrastructure
