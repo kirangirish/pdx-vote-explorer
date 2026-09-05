@@ -23,40 +23,34 @@ export default async function Home() {
 
   return (
     <div className="space-y-8">
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Latest Decision Summary</h2>
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="bg-pdx-green/10 text-pdx-green text-xs font-semibold px-3 py-1 rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        <p className="text-xl font-medium text-gray-900 mb-6">
-          {latestDecision?.aiHeadline || latestDecision?.title || "No recent decisions found."}
-        </p>
-        {latestDecision && (
-          <div className="flex gap-3">
-            <Link
-              href={`/documents/${latestDecision.docNumber}`}
-              className="bg-pdx-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
-            >
-              Read Summary
-            </Link>
-            <Link
-              href={`/documents/${latestDecision.docNumber}#votes`}
-              className="bg-pdx-yellow text-gray-900 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-yellow-500 transition"
-            >
-              See Vote Breakdown
-            </Link>
-          </div>
-        )}
-      </section>
+      {latestDecision ? (
+        <Link
+          href={`/documents/${latestDecision.docNumber}`}
+          className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-pdx-blue hover:shadow-md transition"
+        >
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Latest Decision Summary</h2>
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="bg-pdx-green/10 text-pdx-green text-xs font-semibold px-3 py-1 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="text-xl font-medium text-gray-900 hover:text-pdx-blue transition">
+            {latestDecision.aiHeadline || latestDecision.title}
+          </p>
+        </Link>
+      ) : (
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Latest Decision Summary</h2>
+          <p className="text-xl font-medium text-gray-900">No recent decisions found.</p>
+        </section>
+      )}
 
       <section>
         <div className="flex items-center justify-between mb-5">
