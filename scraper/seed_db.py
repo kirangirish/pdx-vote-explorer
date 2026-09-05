@@ -5,6 +5,7 @@ import requests
 from google import genai
 import os
 from dotenv import load_dotenv
+from roster import lookup as roster_lookup
 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -43,8 +44,15 @@ def scrape_and_seed():
                 
                 # Simplified seeding: Upserting doc and member, then inserting vote
                 # For a true seed, we'd handle Members/Docs more robustly
+                roster_entry = roster_lookup(member)
+                photo_url = f"/members/{roster_entry['slug']}.{roster_entry['ext']}"
+
                 cursor.execute("INSERT OR IGNORE INTO council_documents (doc_number, title, vote_date) VALUES (?, ?, ?)", (doc_number, title, '2026-01-01'))
-                cursor.execute("INSERT OR IGNORE INTO council_members (id, full_name, district) VALUES (?, ?, ?)", (member, member, 0))
+                cursor.execute(
+                    "INSERT INTO council_members (id, full_name, district, photo_url) VALUES (?, ?, ?, ?) "
+                    "ON CONFLICT(id) DO UPDATE SET district = excluded.district, photo_url = excluded.photo_url",
+                    (member, member, roster_entry["district"], photo_url),
+                )
                 cursor.execute("INSERT OR IGNORE INTO member_votes (id, doc_number, member_id, vote) VALUES (?, ?, ?, ?)", (f"{doc_number}-{member}", doc_number, member, vote))
     
     conn.commit()
