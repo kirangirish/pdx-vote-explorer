@@ -44,7 +44,17 @@ export default async function Home() {
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-gray-900 mb-5">Explore Council Members</h2>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-bold text-gray-900">Explore Council Members</h2>
+          <a
+            href="https://pdx.maps.arcgis.com/apps/instant/lookup/index.html?appid=e2e4809ee732411c9f0dca06c78cda38"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-pdx-blue hover:underline"
+          >
+            Find your district &rarr;
+          </a>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((district) => (
             <div key={district} className="flex flex-col items-center gap-6">
