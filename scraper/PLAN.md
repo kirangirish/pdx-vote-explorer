@@ -36,8 +36,25 @@ Replace `INSERT OR IGNORE` with real upserts (`ON CONFLICT DO UPDATE`) matching 
 **Phase 4 — AI enrichment**
 Wire `summarizer.py`'s real prompt into the pipeline (not the one-liner currently duplicated in `seed_db.py`), populating `aiHeadline`/`aiSummary`/`categoryTags`. Only summarize documents that are new or whose title changed, to avoid re-spending Gemini calls on unchanged rows. Add a `--no-ai` flag for fast local runs.
 
+Spec, decided 2026-09-04:
+
+- **Headline**: ≤ 60 characters, newspaper-style (states the action, not the doc number).
+- **Summary**: 2-3 sentences, ~8th-grade reading level. States what changed and who it affects. No jargon, no doc-number references, no procedural filler ("Council voted to approve...") — lead with the substance.
+- **Category tags**: exactly 1-2 tags per document, chosen by the model from a **fixed taxonomy** (not freeform) so the eventual browse/filter UI has a stable set of categories to work with:
+  1. Housing & Development
+  2. Transportation & Infrastructure
+  3. Budget & Finance
+  4. Public Safety
+  5. Parks & Environment
+  6. Contracts & Procurement
+  7. Government Operations
+  8. Other
+  Stored as a comma-separated string in `categoryTags`, matching the schema's existing comment. The prompt should list these eight verbatim and instruct the model to pick only from the list.
+
 **Phase 5 — Orchestration**
-Single `scraper/run.py` entrypoint: fetch → parse → upsert → enrich, with `--dry-run`, `--no-ai`, `--since DATE` flags. Decide refresh cadence (daily cron/launchd) once a full backfill run works end-to-end.
+Single `scraper/run.py` entrypoint: fetch → parse → upsert → enrich, with `--dry-run`, `--no-ai`, `--since DATE` flags.
+
+Cadence, decided 2026-09-04: **daily cron** (via launchd on macOS, or a plain crontab line — `0 6 * * * cd /path/to/pdx-vote-explorer/scraper && ./venv/bin/python run.py`). Reasoning: council votes only post after meetings (roughly weekly), so anything more frequent than daily just re-checks an unchanged page and burns Gemini calls on the enrichment step; anything less frequent (on-demand only) risks the dashboard silently going stale. Revisit only if Phase 1's pagination work reveals votes post on a tighter cycle than assumed.
 
 **Phase 6 — Validation**
 Each run prints a short report: new documents, new votes, members still missing a district, and any row that failed to parse (logged with the raw HTML so bad data never silently lands in the DB).
