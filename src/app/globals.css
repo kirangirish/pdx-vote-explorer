@@ -2,17 +2,27 @@
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  
+
   /* Portland Flag Palette */
   --color-pdx-green: #046A38;
   --color-pdx-yellow: #FFB81C;
   --color-pdx-blue: #418FDE;
-  
+
   /* Functional Status Palette */
   --color-yea: #10b981;     /* Emerald */
   --color-nay: #fb7185;     /* Coral */
   --color-absent: #64748b;  /* Slate */
   --color-abstain: #a855f7; /* Purple */
+
+  /* District Palette -- deep, saturated, and distinct from both the brand
+     colors above and each other, so each district reads as its own thing
+     at a glance instead of another gray label. Picked at a 700-ish depth
+     specifically so they hold ~4.5:1+ contrast as text on white/gray-50,
+     not just as decoration. */
+  --color-district-1: #BE185D; /* Rose */
+  --color-district-2: #0F766E; /* Teal */
+  --color-district-3: #C2410C; /* Orange */
+  --color-district-4: #4338CA; /* Indigo */
 }
 
 @layer base {

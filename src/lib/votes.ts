@@ -1,8 +1,17 @@
+import { Check, X, Clock, MinusCircle, type LucideIcon } from "lucide-react";
+
 export const VOTE_LABELS: Record<string, string> = {
   YEA: "Yea",
   NAY: "Nay",
   ABSENT: "Absent",
   ABSTAIN: "Abstain",
+};
+
+export const VOTE_ICONS: Record<string, LucideIcon> = {
+  YEA: Check,
+  NAY: X,
+  ABSENT: Clock,
+  ABSTAIN: MinusCircle,
 };
 
 export const VOTE_ORDER = ["YEA", "NAY", "ABSENT", "ABSTAIN"];

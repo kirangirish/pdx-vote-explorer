@@ -29,3 +29,14 @@ export const GOVERNING_BODIES: Record<
     homeHref: "/county",
   },
 };
+
+// Tailwind needs each class string to appear literally in source -- can't
+// build "text-district-N" from a template string at runtime. District 0
+// (Mayor/Chair) gets the same gold accent used for its avatar ring.
+export const DISTRICT_TEXT_CLASSES: Record<number, string> = {
+  0: "text-yellow-700",
+  1: "text-district-1",
+  2: "text-district-2",
+  3: "text-district-3",
+  4: "text-district-4",
+};

@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { ArrowRight, Star, MapPin } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
 import { parseCategoryTags, humanizeFallbackTitle } from "@/lib/votes";
+import { categoryStyle } from "@/lib/categories";
 import { GOVERNING_BODIES, type GoverningBody } from "@/lib/governing-body";
 
 async function getDashboardData(governingBody: GoverningBody) {
@@ -12,6 +14,15 @@ async function getDashboardData(governingBody: GoverningBody) {
   });
   return { members, latestDecision };
 }
+
+// Tailwind needs each class string to appear literally in source -- can't
+// build "bg-district-N" from a template string at runtime.
+const DISTRICT_BADGE_CLASSES: Record<number, string> = {
+  1: "bg-district-1 text-white",
+  2: "bg-district-2 text-white",
+  3: "bg-district-3 text-white",
+  4: "bg-district-4 text-white",
+};
 
 export async function Dashboard({ governingBody }: { governingBody: GoverningBody }) {
   const config = GOVERNING_BODIES[governingBody];
@@ -35,7 +46,7 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
       {latestDecision ? (
         <Link
           href={`/documents/${latestDecision.docNumber}`}
-          className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-pdx-blue hover:shadow-md transition"
+          className="group block bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-pdx-blue hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
         >
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Latest Decision Summary</h2>
           {tags.length > 0 && (
@@ -43,43 +54,50 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="bg-pdx-green/10 text-pdx-green text-xs font-semibold px-3 py-1 rounded-full"
+                  className={`${categoryStyle(tag)} text-xs font-semibold px-3 py-1 rounded-full`}
                 >
                   {tag}
                 </span>
               ))}
             </div>
           )}
-          <p className="text-xl font-medium text-gray-900 hover:text-pdx-blue transition">
-            {latestDecision.aiHeadline || humanizeFallbackTitle(latestDecision.title)}
-          </p>
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-pdx-blue transition-colors">
+              {latestDecision.aiHeadline || humanizeFallbackTitle(latestDecision.title)}
+            </p>
+            <ArrowRight className="shrink-0 text-gray-300 group-hover:text-pdx-blue group-hover:translate-x-1 transition-all" size={22} />
+          </div>
         </Link>
       ) : (
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Latest Decision Summary</h2>
-          <p className="text-xl font-medium text-gray-900">No recent decisions found.</p>
+          <p className="text-xl font-bold tracking-tight text-gray-900">No recent decisions found.</p>
         </section>
       )}
 
       <section>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-gray-900">{config.fullName}</h2>
+          <h2 className="text-xl font-black tracking-tight text-gray-900">{config.fullName}</h2>
           <a
             href={config.findDistrictUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-pdx-blue hover:underline"
+            className="flex items-center gap-1.5 text-sm font-semibold text-pdx-blue bg-pdx-blue/10 hover:bg-pdx-blue/20 transition px-3 py-1.5 rounded-full"
           >
-            Find your district &rarr;
+            <MapPin size={14} />
+            Find your district
           </a>
         </div>
 
         {atLarge && (
-          <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
+          <div className="flex items-center gap-4 bg-gradient-to-r from-pdx-yellow/15 to-transparent p-4 rounded-2xl border border-pdx-yellow/30 mb-6">
             <MemberAvatar member={atLarge} size={64} />
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{config.atLargeTitle}</p>
-              <p className="font-semibold text-gray-900">{atLarge.fullName}</p>
+              <p className="flex items-center gap-1.5 text-xs font-bold text-yellow-700 uppercase tracking-wider">
+                <Star size={13} />
+                {config.atLargeTitle}
+              </p>
+              <p className="font-bold text-gray-900">{atLarge.fullName}</p>
             </div>
           </div>
         )}
@@ -87,9 +105,11 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           {config.districts.map((district) => (
             <div key={district} className="flex flex-col items-center gap-6">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <span
+                className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${DISTRICT_BADGE_CLASSES[district]}`}
+              >
                 District {district}
-              </h3>
+              </span>
               {byDistrict[district].map((member) => (
                 <MemberAvatar key={member.id} member={member} />
               ))}

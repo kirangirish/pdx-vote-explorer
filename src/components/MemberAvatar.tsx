@@ -19,6 +19,26 @@ export function initials(fullName: string) {
     .toUpperCase();
 }
 
+// Tailwind needs each class string to appear literally in source -- can't
+// build "ring-district-N" from a template string at runtime. District 0 is
+// the at-large seat (Mayor/Chair), given its own gold accent rather than
+// reusing a district color.
+const RING_CLASSES: Record<number, string> = {
+  0: "ring-pdx-yellow/40 hover:ring-pdx-yellow",
+  1: "ring-district-1/30 hover:ring-district-1",
+  2: "ring-district-2/30 hover:ring-district-2",
+  3: "ring-district-3/30 hover:ring-district-3",
+  4: "ring-district-4/30 hover:ring-district-4",
+};
+
+const FALLBACK_CLASSES: Record<number, string> = {
+  0: "bg-pdx-yellow/15 text-yellow-700",
+  1: "bg-district-1/10 text-district-1",
+  2: "bg-district-2/10 text-district-2",
+  3: "bg-district-3/10 text-district-3",
+  4: "bg-district-4/10 text-district-4",
+};
+
 export function MemberAvatar({
   member,
   size = 96,
@@ -26,10 +46,13 @@ export function MemberAvatar({
   member: Member;
   size?: number;
 }) {
+  const ringClass = RING_CLASSES[member.district] ?? RING_CLASSES[0];
+  const fallbackClass = FALLBACK_CLASSES[member.district] ?? FALLBACK_CLASSES[0];
+
   return (
     <Link
       href={`/members/${member.slug}`}
-      className="group relative block rounded-full ring-2 ring-transparent hover:ring-pdx-green transition"
+      className={`group relative block rounded-full ring-2 transition-all duration-200 hover:scale-110 hover:-translate-y-0.5 ${ringClass}`}
       style={{ width: size, height: size }}
     >
       {member.photoUrl ? (
@@ -42,7 +65,7 @@ export function MemberAvatar({
           className="w-full h-full rounded-full object-cover"
         />
       ) : (
-        <div className="w-full h-full rounded-full bg-pdx-blue/10 text-pdx-blue flex items-center justify-center font-semibold">
+        <div className={`w-full h-full rounded-full flex items-center justify-center font-bold ${fallbackClass}`}>
           {initials(member.fullName)}
         </div>
       )}

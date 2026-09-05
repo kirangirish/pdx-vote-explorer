@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
 import {
   VOTE_LABELS,
   VOTE_ORDER,
+  VOTE_ICONS,
   VOTE_BADGE_STYLES,
   VOTE_BADGE_STYLES_ACTIVE,
   parseCategoryTags,
   formatVoteDate,
   humanizeFallbackTitle,
 } from "@/lib/votes";
+import { DISTRICT_TEXT_CLASSES } from "@/lib/governing-body";
+import { categoryStyle } from "@/lib/categories";
 
 const RECENT_WINDOW_DAYS = 60;
 
@@ -73,16 +77,17 @@ export default async function MemberPage({
 
   return (
     <div className="space-y-8">
-      <Link href="/" className="text-sm text-pdx-blue hover:underline">
-        &larr; Back to dashboard
+      <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-pdx-blue hover:gap-2.5 transition-all">
+        <ArrowLeft size={15} />
+        Back to dashboard
       </Link>
 
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-5">
           <MemberAvatar member={member as Member} size={80} />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{member.fullName}</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-2xl font-black tracking-tight text-gray-900">{member.fullName}</h1>
+            <p className={`text-sm font-bold ${DISTRICT_TEXT_CLASSES[member.district] ?? "text-gray-500"}`}>
               {member.district !== 0
                 ? `District ${member.district}`
                 : member.governingBody === "multnomah_county"
@@ -98,12 +103,14 @@ export default async function MemberPage({
         <div className="flex flex-wrap gap-2">
           {VOTE_ORDER.map((key) => {
             const isActive = voteFilter === key;
+            const Icon = VOTE_ICONS[key];
             return (
               <Link
                 key={key}
                 href={isActive ? `/members/${slug}` : `/members/${slug}?vote=${key}`}
-                className={`${isActive ? VOTE_BADGE_STYLES_ACTIVE[key] : VOTE_BADGE_STYLES[key]} text-sm font-semibold px-3 py-1.5 rounded-full transition hover:opacity-80`}
+                className={`${isActive ? VOTE_BADGE_STYLES_ACTIVE[key] : VOTE_BADGE_STYLES[key]} flex items-center gap-1.5 text-sm font-bold px-3 py-1.5 rounded-full transition hover:opacity-80`}
               >
+                <Icon size={14} />
                 {VOTE_LABELS[key]} {countsByType[key] ?? 0}
               </Link>
             );
@@ -113,13 +120,13 @@ export default async function MemberPage({
 
       <section>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-black tracking-tight text-gray-900">
             {voteFilter
               ? `All ${VOTE_LABELS[voteFilter]} Votes (${countsByType[voteFilter] ?? 0})`
               : `Votes — Last ${RECENT_WINDOW_DAYS} Days`}
           </h2>
           {voteFilter && (
-            <Link href={`/members/${slug}`} className="text-sm text-pdx-blue hover:underline">
+            <Link href={`/members/${slug}`} className="text-sm font-semibold text-pdx-blue hover:underline">
               Show recent activity
             </Link>
           )}
@@ -133,15 +140,16 @@ export default async function MemberPage({
             {votes.map((v) => {
               const tags = parseCategoryTags(v.document.categoryTags);
               const voteKey = v.vote.toUpperCase();
+              const Icon = VOTE_ICONS[voteKey];
               return (
                 <div
                   key={v.id}
-                  className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-start justify-between gap-4"
+                  className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex items-start justify-between gap-4"
                 >
                   <div className="min-w-0">
                     <Link
                       href={`/documents/${v.document.docNumber}`}
-                      className="font-medium text-gray-900 hover:text-pdx-blue hover:underline"
+                      className="font-semibold text-gray-900 hover:text-pdx-blue hover:underline"
                     >
                       {v.document.aiHeadline || humanizeFallbackTitle(v.document.title)}
                     </Link>
@@ -151,7 +159,7 @@ export default async function MemberPage({
                         {tags.map((tag) => (
                           <span
                             key={tag}
-                            className="bg-pdx-green/10 text-pdx-green text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                            className={`${categoryStyle(tag)} text-[11px] font-semibold px-2 py-0.5 rounded-full`}
                           >
                             {tag}
                           </span>
@@ -160,8 +168,9 @@ export default async function MemberPage({
                     )}
                   </div>
                   <span
-                    className={`${VOTE_BADGE_STYLES[voteKey] ?? "bg-gray-100 text-gray-600"} text-xs font-semibold px-2.5 py-1 rounded-full shrink-0`}
+                    className={`${VOTE_BADGE_STYLES[voteKey] ?? "bg-gray-100 text-gray-600"} flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full shrink-0`}
                   >
+                    {Icon && <Icon size={12} />}
                     {VOTE_LABELS[voteKey] ?? v.vote}
                   </span>
                 </div>
