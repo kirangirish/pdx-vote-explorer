@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 from parser import parse_votes_page
 from db import get_connection, save_records, upsert_enrichment
 from enrich import enrich_document
+from enrichment_cache import load_cache, save_cache
 
 load_dotenv("../.env")
 
@@ -84,19 +85,30 @@ def main():
     try:
         summary = save_records(conn, all_records)
 
-        enriched, enrich_failures = 0, 0
+        enriched, enrich_failures, cache_hits = 0, 0, 0
         if not args.no_ai and summary["needs_enrichment"]:
-            print(f"Enriching {len(summary['needs_enrichment'])} document(s) via Gemini...", file=sys.stderr)
+            cache = load_cache()
+            print(f"Enriching {len(summary['needs_enrichment'])} document(s)...", file=sys.stderr)
             cursor = conn.cursor()
             for doc_number in summary["needs_enrichment"]:
-                result = enrich_document(doc_titles[doc_number])
-                if result is None:
-                    enrich_failures += 1
-                    continue
+                title = doc_titles[doc_number]
+                cached = cache.get(doc_number)
+
+                if cached and cached.get("title") == title:
+                    result = cached
+                    cache_hits += 1
+                else:
+                    result = enrich_document(title)
+                    if result is None:
+                        enrich_failures += 1
+                        continue
+                    cache[doc_number] = {"title": title, **result}
+                    time.sleep(1)  # be polite to the Gemini API -- only for real calls, not cache hits
+
                 upsert_enrichment(cursor, doc_number, result["headline"], result["summary"], result["tags"])
                 enriched += 1
-                time.sleep(1)  # be polite to the Gemini API too
             conn.commit()
+            save_cache(cache)
     finally:
         conn.close()
 
@@ -104,7 +116,8 @@ def main():
         f"Done. Upserted {summary['documents']} documents, "
         f"{summary['members']} members, {summary['votes']} votes."
         + (f" {parse_failures} page(s) failed to fetch." if parse_failures else "")
-        + ("" if args.no_ai else f" Enriched {enriched} document(s)."
+        + ("" if args.no_ai else f" Enriched {enriched} document(s)"
+           + (f" ({cache_hits} from cache, {enriched - cache_hits} new)." if enriched else ".")
            + (f" {enrich_failures} enrichment failure(s)." if enrich_failures else ""))
     )
 
