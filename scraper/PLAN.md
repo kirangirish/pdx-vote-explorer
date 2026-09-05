@@ -47,9 +47,13 @@ Spec, decided 2026-09-04:
   8. Other
   Stored as a comma-separated string in `categoryTags`, matching the schema's existing comment. The prompt should list these eight verbatim and instruct the model to pick only from the list.
 
-**Phase 5 — Orchestration** ✅ Done for the fetch→parse→upsert path (`run.py`). Remaining: `--since DATE` flag, and wiring in `--no-ai` once Phase 4 exists.
+✅ Implemented in `scraper/enrich.py`, wired into `run.py`. Verified against live Gemini calls: correct neutral tone, tags always drawn from the taxonomy, headlines under the character limit. `run.py` only enriches documents that are new, retitled, or never successfully enriched (tracked in `db.py`'s `save_records`), and a failed call just leaves `ai_headline` null for automatic retry on the next run instead of crashing the whole scrape.
 
-Cadence, decided 2026-09-04: **daily cron** (via launchd on macOS, or a plain crontab line — `0 6 * * * cd /path/to/pdx-vote-explorer/scraper && ./venv/bin/python run.py`). Reasoning: council votes only post after meetings (roughly weekly), so anything more frequent than daily just re-checks an unchanged page and burns Gemini calls on the enrichment step; anything less frequent (on-demand only) risks the dashboard silently going stale.
+**A real constraint discovered doing the first backfill (2026-09-05): the free-tier Gemini API key has a hard 20 requests/day limit per model** (`generativelanguage.googleapis.com/generate_content_free_tier_requests`, resets daily). Backfilling all 60 seeded documents in one run got only 5 enriched before every subsequent call 429'd — the other 55 are sitting with `ai_headline = NULL` and will pick up automatically over the next several days as the scraper re-runs and the quota resets, at ~20/day. This is fine for **steady-state**: a normal day only adds a handful of new documents, well under 20. It's only the one-time historical backfill that doesn't fit in a day on the free tier. Options if faster backfill matters: upgrade to a paid Gemini tier, or just let it trickle in over the space of a few days — no code change either way, `run.py` already handles it correctly.
+
+**Phase 5 — Orchestration** ✅ Done for the fetch→parse→upsert path (`run.py`). Remaining: `--since DATE` flag.
+
+Cadence, decided 2026-09-04: **daily cron** (via launchd on macOS, or a plain crontab line — `0 6 * * * cd /path/to/pdx-vote-explorer/scraper && ./venv/bin/python run.py`). Reasoning: council votes only post after meetings (roughly weekly), so anything more frequent than daily just re-checks an unchanged page and burns Gemini calls on the enrichment step; anything less frequent (on-demand only) risks the dashboard silently going stale. Confirmed compatible with the free-tier quota above for ongoing operation, just not for the initial backfill.
 
 **Phase 6 — Validation** — Partially done. `run.py` prints a summary (documents/members/votes upserted, pages that failed to fetch) but doesn't yet report per-row parse failures with the offending raw HTML, or flag members still missing a district. Worth adding once Phase 4 lands, so one command reports the full health of a run.
 
