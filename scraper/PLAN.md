@@ -57,5 +57,32 @@ Cadence, decided 2026-09-04: **daily cron** (via launchd on macOS, or a plain cr
 
 **Phase 6 — Validation** — Partially done. `run.py` prints a summary (documents/members/votes upserted, pages that failed to fetch) but doesn't yet report per-row parse failures with the offending raw HTML, or flag members still missing a district. Worth adding once Phase 4 lands, so one command reports the full health of a run.
 
+## Multnomah County scraper (added 2026-09-05)
+
+A second, separate scraper for the County Board of Commissioners, sharing `db.py`/`enrich.py`/`enrichment_cache.py` with the Portland one but with its own fetch/parse layer, since the data lives in a completely different shape:
+
+- `multco_parser.py` — pure parsing (no network I/O), tested against fixtures. `parse_meeting_list()` reads the Granicus meeting-list HTML, filtered to `Regular Board Meeting` / `Special Meeting` rows (confirmed to be the only types with recorded votes — Board Briefings and Budget Work Sessions don't appear to have them). `parse_minutes_text()` reads text extracted (via `pypdf`) from each meeting's minutes PDF.
+- `multco_run.py` — the pipeline entrypoint: fetch meeting list → resolve each meeting's actual PDF URL (`MinutesViewer.php` redirects to a Google Docs viewer URL that embeds the real `DocumentViewer.php` link in its query string — one redirect-follow, no need to actually load Google's viewer) → extract PDF text → parse → upsert, with `--meetings`, `--dry-run`, `--no-ai`, `--db` flags, mirroring `run.py`.
+- `multco_roster.py` — the 5 real Board members (Chair + 4 district Commissioners), confirmed against multco.us. Minutes PDFs refer to people by last name only with a title prefix ("Commissioner Moyer", "Chair Vega Pederson"), so this also maps those short forms to full names.
+- `test_multco_parser.py` — regression tests against `fixtures/multco_meeting_list.html` and `fixtures/multco_minutes_2026-09-03.txt`.
+
+### Why this needed a schema change
+Added `CouncilMember`/`CouncilDocument.governingBody` (`"portland_council"` default | `"multnomah_county"`). Necessary because both bodies use district numbers 1-4 for different geographic areas covering different people — any query that groups or filters by district must also filter by `governingBody`, or a Portland District 1 and a Multnomah District 1 silently get mixed together. The homepage's district grid query is the one place in the app that would have broken the moment county data existed; it's now explicitly scoped to `portland_council`.
+
+### The data format, and real gotchas hit
+The minutes PDF's real content — numbered agenda items (`C.1`, `C.2`... consent; `R.1`, `R.2`... regular) each followed by an `AYES (N): Name, Name...` / `NOS (N): Name, Name...` block — is only ever the first 1-2 pages. Everything from `CAPTIONS` onward is a 100+ page auto-generated Webex transcript of the entire meeting and must be excluded, both for correctness and so the parser isn't scanning speaker-by-speaker chatter for a pattern that isn't there. Note it's **`NOS`**, not `NAYS`/`NAY` like Portland — a real format difference, not a typo.
+
+Two parsing bugs found and fixed while building this, both now regression-tested:
+1. A vote's name list often runs on into the outcome sentence with no clean punctuation boundary (`"...Chair Vega Pederson The consent agenda is approved."`), which silently truncated the last-listed name (almost always the Chair) when parsed by splitting on commas. Fixed by searching the raw text directly for known `"<Title> <Lastname>"` patterns instead, stopping once the block's own declared count (`AYES (N)`) is reached — robust regardless of what trailing prose got captured.
+2. Title extraction stopped at the word "moves" but included the mover's name before it (`"...Technicians. Commissioner Brim-Edwards moves..."` → title ends up containing "Commissioner Brim-Edwards"). Separately, a PDF page-footer (`"Page 2 of 89"`) can land mid-title when a title happens to wrap across a page boundary — and stripping just the footer text without its surrounding blank-line whitespace still left an unwanted paragraph-block split that truncated the title anyway. Both fixed.
+
+### Status
+Verified against 5 real live meetings: 20 documents, 98 votes, all persisted correctly with `governingBody: "multnomah_county"`. AI enrichment shares the same daily Gemini quota as Portland's (see above) — not run for county documents yet today.
+
+### Not done yet
+- No dedicated county UI — county member/document pages are reachable by URL (`/members/meghan-moyer`, `/documents/2026-09-03-R.2`) since routes are already body-agnostic, but nothing in the app links to them. A homepage section (or a body switcher) is real design work, intentionally out of scope for this pass.
+- Only pulled 5 of the ~90+ voting meetings since 2010 available on Granicus. No backfill attempted yet.
+- Haven't exhaustively confirmed Board Briefings/Budget Work Sessions never have votes — `parse_meeting_list()` excludes them based on a handful of samples, worth a closer look before relying on that assumption for a real historical backfill.
+
 ## What's next
-Phase 4 (AI enrichment) is the main remaining piece for the core pipeline. A full historical backfill (`--pages 652` or a dedicated `--all` flag with more careful rate-limiting) is optional and can happen anytime once Phase 4 is stable — no reason to burn Gemini calls summarizing documents before the summary spec is actually wired up.
+Phase 4 (AI enrichment) is done for both scrapers' code paths; the remaining 55 Portland documents and all 20 Multnomah documents will pick up their headlines/summaries/tags automatically as the shared daily Gemini quota resets. A full historical backfill (Portland: `--pages 652`; Multnomah: `--meetings` for full history) is optional and can happen anytime — no reason to burn Gemini calls summarizing documents faster than the free tier allows.

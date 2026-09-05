@@ -44,12 +44,16 @@ This project uses Prisma 7, which **requires an explicit driver adapter** — `n
 
 ## Running the scraper (required for real data)
 
+Two separate scrapers share the same venv/database — Portland City Council (HTML) and Multnomah County Board of Commissioners (PDF minutes). Both write to the same `governingBody`-tagged tables; see `scraper/PLAN.md` for how each one actually works.
+
 ```bash
 cd scraper
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python run.py --pages 30   # most recent 30 pages (~60 documents); omit --pages for just the latest page
+
+python run.py --pages 30           # Portland: most recent 30 pages (~60 documents); omit --pages for just the latest
+python multco_run.py --meetings 5  # Multnomah County: most recent 5 voting meetings; omit --meetings for just the latest
 ```
 
 Writes real vote records — real dates, real districts, real member names pulled straight from the page's own links — directly into `prisma/dev.db` via idempotent upserts (safe to re-run, safe to run repeatedly to pull more history). `python test_parser.py` runs a regression test against a saved fixture (`scraper/fixtures/`) without touching the network. AI summary/headline/category-tag generation isn't wired in yet — see `scraper/PLAN.md` Phase 4.
