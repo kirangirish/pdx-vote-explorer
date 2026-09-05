@@ -38,7 +38,7 @@ export default async function Home() {
           </div>
         )}
         <p className="text-xl font-medium text-gray-900 mb-6">
-          {latestDecision?.title || "No recent decisions found."}
+          {latestDecision?.aiHeadline || latestDecision?.title || "No recent decisions found."}
         </p>
         {latestDecision && (
           <div className="flex gap-3">
