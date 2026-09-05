@@ -9,6 +9,7 @@ import {
   VOTE_BADGE_STYLES_ACTIVE,
   parseCategoryTags,
   formatVoteDate,
+  humanizeFallbackTitle,
 } from "@/lib/votes";
 
 const RECENT_WINDOW_DAYS = 60;
@@ -142,7 +143,7 @@ export default async function MemberPage({
                       href={`/documents/${v.document.docNumber}`}
                       className="font-medium text-gray-900 hover:text-pdx-blue hover:underline"
                     >
-                      {v.document.aiHeadline || v.document.title}
+                      {v.document.aiHeadline || humanizeFallbackTitle(v.document.title)}
                     </Link>
                     <p className="text-xs text-gray-500 mt-1">{formatVoteDate(v.document.voteDate)}</p>
                     {tags.length > 0 && (

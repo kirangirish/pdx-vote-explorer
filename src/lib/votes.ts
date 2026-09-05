@@ -38,3 +38,34 @@ export function formatVoteDate(date: Date | string): string {
     timeZone: "UTC",
   });
 }
+
+// A real AI headline (aiHeadline) is always preferred -- this only runs on
+// the raw scraped title while a document is waiting on AI enrichment (see
+// scraper/PLAN.md Phase 4). Strips procedural/bureaucratic boilerplate that
+// means nothing to a resident -- document-type labels, internal budget
+// codes, "First/Second Reading" framing -- so the fallback at least states
+// the actual subject instead of e.g. "BUDGET MODIFICATION #DCJ-002-27 - ".
+// Not a substitute for a real headline: no attempt at plain-language
+// rewriting or a character limit, just noise removal.
+const FALLBACK_TITLE_PREFIXES = [
+  /^\*\s*/, // Portland's emergency-ordinance marker
+  /^BUDGET MODIFICATION\s*#?\s*[\w-]+\s*[:\-]\s*/i,
+  /^RESOLUTION\s*:?\s*-?\s*/i,
+  /^(?:Public Hearing and (?:First|Second) Reading of|(?:First|Second) Reading and Public Hearing of)\s+/i,
+];
+
+export function humanizeFallbackTitle(title: string): string {
+  let result = title;
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const prefix of FALLBACK_TITLE_PREFIXES) {
+      const stripped = result.replace(prefix, "");
+      if (stripped !== result) {
+        result = stripped;
+        changed = true;
+      }
+    }
+  }
+  return result.trim() || title;
+}

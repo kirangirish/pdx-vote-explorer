@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
-import { parseCategoryTags } from "@/lib/votes";
+import { parseCategoryTags, humanizeFallbackTitle } from "@/lib/votes";
 import { GOVERNING_BODIES, type GoverningBody } from "@/lib/governing-body";
 
 async function getDashboardData(governingBody: GoverningBody) {
@@ -51,7 +51,7 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
             </div>
           )}
           <p className="text-xl font-medium text-gray-900 hover:text-pdx-blue transition">
-            {latestDecision.aiHeadline || latestDecision.title}
+            {latestDecision.aiHeadline || humanizeFallbackTitle(latestDecision.title)}
           </p>
         </Link>
       ) : (

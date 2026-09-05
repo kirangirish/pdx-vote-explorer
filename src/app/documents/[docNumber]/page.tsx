@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
-import { VOTE_LABELS, VOTE_ORDER, parseCategoryTags, formatVoteDate } from "@/lib/votes";
+import { VOTE_LABELS, VOTE_ORDER, parseCategoryTags, formatVoteDate, humanizeFallbackTitle } from "@/lib/votes";
 
 async function getDocument(docNumber: string) {
   return prisma.councilDocument.findUnique({
@@ -51,7 +51,7 @@ export default async function DocumentPage({
           </div>
         )}
         <h1 className="text-2xl font-bold text-gray-900">
-          {document.aiHeadline || document.title}
+          {document.aiHeadline || humanizeFallbackTitle(document.title)}
         </h1>
         <p className="text-sm text-gray-500">{formatVoteDate(document.voteDate)}</p>
         {document.aiSummary && (
@@ -66,7 +66,7 @@ export default async function DocumentPage({
               href={document.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              title="View the official record on portland.gov"
+              title="View the official government record"
               className="text-pdx-blue text-sm hover:underline ml-1 align-super"
             >
               [1]
