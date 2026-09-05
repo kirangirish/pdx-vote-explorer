@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  
+  /* Portland Flag Palette */
+  --color-pdx-green: #046A38;
+  --color-pdx-yellow: #FFB81C;
+  --color-pdx-blue: #418FDE;
+  
+  /* Functional Status Palette */
+  --color-yea: #10b981;    /* Emerald */
+  --color-nay: #fb7185;    /* Coral */
+  --color-absent: #64748b; /* Slate */
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-gray-50 text-gray-900;
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model CouncilMember {
+  id         String       @id @default(uuid())
+  fullName   String       @map("full_name")
+  district   Int
+  photoUrl   String?      @map("photo_url")
+  bioSummary String?      @map("bio_summary")
+  votes      MemberVote[]
+
+  @@map("council_members")
+}
+
+model CouncilDocument {
+  docNumber    String       @id @map("doc_number") // e.g., "2026-280"
+  title        String
+  voteDate     DateTime     @map("vote_date")
+  aiHeadline   String?      @map("ai_headline")
+  aiSummary    String?      @map("ai_summary")
+  categoryTags String?      @map("category_tags") // Stored as comma-separated or JSON string for simplicity
+  votes        MemberVote[]
+
+  @@map("council_documents")
+}
+
+model MemberVote {
+  id        String          @id @default(uuid())
+  docNumber String          @map("doc_number")
+  memberId  String          @map("member_id")
+  vote      String          // "YEA", "NAY", "ABSENT", "ABSTAIN"
+  
+  document  CouncilDocument @relation(fields: [docNumber], references: [docNumber], onDelete: Cascade)
+  member    CouncilMember   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([docNumber, memberId]) // A member can only vote once per document
+  @@map("member_votes")
+}
