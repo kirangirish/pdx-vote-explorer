@@ -28,6 +28,7 @@ model CouncilDocument {
   aiHeadline   String?      @map("ai_headline")
   aiSummary    String?      @map("ai_summary")
   categoryTags String?      @map("category_tags") // Stored as comma-separated or JSON string for simplicity
+  sourceUrl    String?      @map("source_url") // the actual portland.gov record this document/summary cites
   votes        MemberVote[]
 
   @@map("council_documents")

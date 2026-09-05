@@ -5,6 +5,7 @@ Usage:
   python run.py                  Fetch the most recent page (page 0) only
   python run.py --pages 5        Fetch the 5 most recent pages
   python run.py --dry-run        Parse and report without writing to the DB
+  python run.py --no-ai          Skip AI enrichment (headline/summary/tags)
 """
 
 import argparse
@@ -12,9 +13,13 @@ import sys
 import time
 
 import requests
+from dotenv import load_dotenv
 
 from parser import parse_votes_page
-from db import get_connection, save_records
+from db import get_connection, save_records, upsert_enrichment
+from enrich import enrich_document
+
+load_dotenv("../.env")
 
 BASE_URL = "https://www.portland.gov/council/votes"
 HEADERS = {
@@ -44,6 +49,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pages", type=int, default=1, help="Number of most-recent pages to fetch (default: 1)")
     parser.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
+    parser.add_argument("--no-ai", action="store_true", help="Skip AI enrichment (headline/summary/tags)")
     parser.add_argument("--db", default=DEFAULT_DB_PATH, help=f"Path to the sqlite db (default: {DEFAULT_DB_PATH})")
     args = parser.parse_args()
 
@@ -72,9 +78,25 @@ def main():
         print(f"[dry run] Would upsert {len(docs)} documents, {len(all_records)} votes. No DB changes made.")
         return
 
+    doc_titles = {r["doc_number"]: r["title"] for r in all_records}
+
     conn = get_connection(args.db)
     try:
         summary = save_records(conn, all_records)
+
+        enriched, enrich_failures = 0, 0
+        if not args.no_ai and summary["needs_enrichment"]:
+            print(f"Enriching {len(summary['needs_enrichment'])} document(s) via Gemini...", file=sys.stderr)
+            cursor = conn.cursor()
+            for doc_number in summary["needs_enrichment"]:
+                result = enrich_document(doc_titles[doc_number])
+                if result is None:
+                    enrich_failures += 1
+                    continue
+                upsert_enrichment(cursor, doc_number, result["headline"], result["summary"], result["tags"])
+                enriched += 1
+                time.sleep(1)  # be polite to the Gemini API too
+            conn.commit()
     finally:
         conn.close()
 
@@ -82,6 +104,8 @@ def main():
         f"Done. Upserted {summary['documents']} documents, "
         f"{summary['members']} members, {summary['votes']} votes."
         + (f" {parse_failures} page(s) failed to fetch." if parse_failures else "")
+        + ("" if args.no_ai else f" Enriched {enriched} document(s)."
+           + (f" {enrich_failures} enrichment failure(s)." if enrich_failures else ""))
     )
 
 

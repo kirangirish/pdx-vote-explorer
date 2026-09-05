@@ -54,8 +54,24 @@ export default async function DocumentPage({
           {document.aiHeadline || document.title}
         </h1>
         <p className="text-sm text-gray-500">{formatVoteDate(document.voteDate)}</p>
+        {document.aiSummary && (
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            AI-generated summary
+          </p>
+        )}
         <p className="text-gray-700">
           {document.aiSummary || "No AI summary generated yet for this item."}
+          {document.sourceUrl && (
+            <a
+              href={document.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View the official record on portland.gov"
+              className="text-pdx-blue text-sm hover:underline ml-1 align-super"
+            >
+              [1]
+            </a>
+          )}
         </p>
       </section>
 
