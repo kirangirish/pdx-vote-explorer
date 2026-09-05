@@ -1,40 +1,35 @@
 # Scraper Implementation Plan
 
-## Current state
+## Current state (updated 2026-09-05)
 
-The `scraper/` folder is a set of exploration scripts, not a pipeline:
+The scraper is now a real, tested pipeline, not a set of one-off prototype scripts:
 
-- `verify_access.py`, `inspect_html.py` — one-off scripts used to confirm `portland.gov/council/votes` is reachable and see its raw HTML. Debug-only, not part of the pipeline.
-- `main.py` — first working parser: regexes a doc number out of each `<th>`, reads title/member/vote from the following `<td>`s.
-- `summarizer.py` — same parser plus a real Gemini prompt that produces a resident-facing summary, but only ever run against `data[0]` for a smoke test. Never wired into persistence.
-- `seed_db.py` — the only script that writes to `prisma/dev.db`. It re-implements the parser a third time and inserts with `INSERT OR IGNORE`.
+- `parser.py` — pure HTML parsing (no network I/O), tested against a fixture in `scraper/fixtures/`. Extracts doc number, title, doc URL, real vote date, member name, member slug, district, and vote — all straight from the page's own markup.
+- `db.py` — idempotent `ON CONFLICT DO UPDATE` upserts for documents/members/votes, so re-running the scraper corrects existing rows instead of only adding new ones.
+- `run.py` — the pipeline entrypoint: fetches N most-recent pages → parses → upserts, with `--pages`, `--dry-run`, `--db` flags and basic retry/backoff on fetch failures.
+- `roster.py` — static district/photo lookup for the 12 councilors + the Mayor, used as a fallback when a row's own district link is missing.
+- `test_parser.py` — regression test against the fixture (`python test_parser.py`), catches parsing regressions without hitting the network.
+- `debug/` — the original one-off exploration scripts (`verify_access.py`, `inspect_html.py`, `inspect_html_body.py`), kept for manual debugging, not part of the pipeline.
+- `summarizer.py` — the real Gemini prompt for AI summaries, written but not yet wired into `run.py` (Phase 4 below).
 
-Gaps found while reading `seed_db.py` against `prisma/schema.prisma`:
+`main.py` and `seed_db.py` (the original hardcoded-date, hardcoded-district, `INSERT OR IGNORE` prototype) have been deleted — fully superseded by the above.
 
-- `vote_date` is hardcoded to `'2026-01-01'` for every row — never read from the page.
-- `district` is hardcoded to `0` for every member (visible now on localhost — every card reads "District: 0").
-- `member_id` is the raw scraped name (`"Dan Ryan"`). Any whitespace/typo variant scraped later creates a duplicate member instead of matching.
-- `ai_headline`, `ai_summary`, `category_tags`, `photo_url`, `bio_summary` — all columns exist in the schema but nothing ever populates them; `seed_db.py` doesn't call the Gemini summarizer at all.
-- `INSERT OR IGNORE` means a re-run never updates anything — if a title gets cleaned up or a vote was mis-scraped, running the scraper again won't fix it.
-- Only one page of the votes table is fetched — no check for pagination/date range, so this is likely a small recent slice of the real voting history.
-- No retries, no rate limiting, no fixture-based tests — every parser change has to be checked by re-hitting the live site.
+### A real gotcha worth documenting
+portland.gov's server-rendered HTML never closes each row's `<th>` before its sibling `<td>`s — a real browser's HTML5 parser auto-closes it, but BeautifulSoup's default `html.parser` backend takes it literally and nests every `<td>` inside the `<th>`, corrupting every field (`doc_number` ends up containing the entire row's concatenated text). Parsing **must** use `BeautifulSoup(html, "html5lib")`, which implements the same browser auto-closing rules. `html.parser` will silently produce garbage — this bit the very first version of `parser.py` in this session and is now a regression-tested assertion in `test_parser.py`.
+
+Also: `curl` gets a 403 from portland.gov's bot manager on *every* page (confirmed on both the votes page and image endpoints), but Python's `requests` library gets a clean 200 with the same content — apparently only curl's specific TLS/HTTP fingerprint is flagged. `run.py` using `requests` works fine in practice.
 
 ## Plan
 
-**Phase 0 — Consolidate**
-Move `verify_access.py` / `inspect_html.py` into `scraper/debug/` (manual tools, not run by the pipeline). Add a `requirements.txt` pinning what's actually used (`requests`, `beautifulsoup4`, `python-dotenv`, `google-genai`) instead of relying on the ad hoc venv. Delete the duplicate parsing logic in `main.py`/`summarizer.py`/`seed_db.py` in favor of one shared parser module.
+**Phase 0 — Consolidate** ✅ Done. `debug/` holds the manual exploration scripts, `requirements.txt` pins real versions (including `html5lib`, added for the gotcha above), dead prototype code removed.
 
-**Phase 1 — Fetch layer**
-One `fetch(url)` helper: fixed UA, timeout, retry with backoff, raises on non-200 instead of printing and returning `[]`. Check whether `/council/votes` paginates (page param, or a per-meeting/date-range URL) — right now the scraper almost certainly only sees the latest page, not full history.
+**Phase 1 — Fetch layer** ✅ Done for pagination discovery and basic retry/backoff. The votes page paginates via `?page=N`, confirmed up to page 651 (652 pages × ~2 documents/page — full history back to January 6, 2021 is available, but `run.py`'s default is 1 page; a real backfill run used `--pages 30` to seed ~60 documents / 720 votes as a working dataset. A full 652-page backfill is possible but not yet attempted — would need real rate-limiting consideration for portland.gov's servers beyond the current 1s-between-pages delay.
 
-**Phase 2 — Parsing layer**
-Save a real page snapshot to `scraper/fixtures/` and write parsing against the fixture so logic can be tested without hitting the network. Replace the `re.search(r'\d{4}-\d+', ...)` guess with an explicit row parser that also pulls the real vote date (there's a date heading somewhere above each table — needs inspecting) instead of hardcoding it. Maintain a small static roster (13 councilors + mayor → district, since districts are fixed public knowledge, not something the votes page will ever expose) and map scraped names to it via a canonical slug, so name variants collapse onto one member instead of creating duplicates.
+**Phase 2 — Parsing layer** ✅ Done. `parser.py` + `test_parser.py` + `fixtures/votes_page.html`. Pulls the real vote date from each date heading's `<time datetime="...">` (no more hardcoded `2026-01-01`), and gets district + a photo-matching slug for free from each vote row's `/council/districts/{d}/{slug}` link — no more guessing at name variants.
 
-**Phase 3 — Persistence layer**
-Replace `INSERT OR IGNORE` with real upserts (`ON CONFLICT DO UPDATE`) matching the Prisma column names, so re-running the scraper corrects existing rows instead of only ever adding new ones.
+**Phase 3 — Persistence layer** ✅ Done. `db.py`'s upserts are real `ON CONFLICT DO UPDATE`, verified idempotent by running `run.py` twice back-to-back with identical results.
 
-**Phase 4 — AI enrichment**
-Wire `summarizer.py`'s real prompt into the pipeline (not the one-liner currently duplicated in `seed_db.py`), populating `aiHeadline`/`aiSummary`/`categoryTags`. Only summarize documents that are new or whose title changed, to avoid re-spending Gemini calls on unchanged rows. Add a `--no-ai` flag for fast local runs.
+**Phase 4 — AI enrichment** — Not started. Wire `summarizer.py`'s real prompt into `run.py`, populating `aiHeadline`/`aiSummary`/`categoryTags`. Only summarize documents that are new or whose title changed, to avoid re-spending Gemini calls on unchanged rows. Add a `--no-ai` flag for fast local runs.
 
 Spec, decided 2026-09-04:
 
@@ -52,17 +47,11 @@ Spec, decided 2026-09-04:
   8. Other
   Stored as a comma-separated string in `categoryTags`, matching the schema's existing comment. The prompt should list these eight verbatim and instruct the model to pick only from the list.
 
-**Phase 5 — Orchestration**
-Single `scraper/run.py` entrypoint: fetch → parse → upsert → enrich, with `--dry-run`, `--no-ai`, `--since DATE` flags.
+**Phase 5 — Orchestration** ✅ Done for the fetch→parse→upsert path (`run.py`). Remaining: `--since DATE` flag, and wiring in `--no-ai` once Phase 4 exists.
 
-Cadence, decided 2026-09-04: **daily cron** (via launchd on macOS, or a plain crontab line — `0 6 * * * cd /path/to/pdx-vote-explorer/scraper && ./venv/bin/python run.py`). Reasoning: council votes only post after meetings (roughly weekly), so anything more frequent than daily just re-checks an unchanged page and burns Gemini calls on the enrichment step; anything less frequent (on-demand only) risks the dashboard silently going stale. Revisit only if Phase 1's pagination work reveals votes post on a tighter cycle than assumed.
+Cadence, decided 2026-09-04: **daily cron** (via launchd on macOS, or a plain crontab line — `0 6 * * * cd /path/to/pdx-vote-explorer/scraper && ./venv/bin/python run.py`). Reasoning: council votes only post after meetings (roughly weekly), so anything more frequent than daily just re-checks an unchanged page and burns Gemini calls on the enrichment step; anything less frequent (on-demand only) risks the dashboard silently going stale.
 
-**Phase 6 — Validation**
-Each run prints a short report: new documents, new votes, members still missing a district, and any row that failed to parse (logged with the raw HTML so bad data never silently lands in the DB).
+**Phase 6 — Validation** — Partially done. `run.py` prints a summary (documents/members/votes upserted, pages that failed to fetch) but doesn't yet report per-row parse failures with the offending raw HTML, or flag members still missing a district. Worth adding once Phase 4 lands, so one command reports the full health of a run.
 
-## Suggested order of attack
-1. Phase 2 first (fixture + real parser + real date) — everything downstream depends on parsing being correct, and it's what's most broken right now.
-2. Phase 3 (upserts) so iterating on Phase 2 doesn't require wiping the DB each time.
-3. Phase 1 (pagination) once single-page parsing is solid, to get full history rather than a recent slice.
-4. Phase 4 (AI enrichment) — currently built but unused; smallest lift.
-5. Phase 0/5/6 (cleanup, entrypoint, reporting) last, once the pipeline actually works.
+## What's next
+Phase 4 (AI enrichment) is the main remaining piece for the core pipeline. A full historical backfill (`--pages 652` or a dedicated `--all` flag with more careful rate-limiting) is optional and can happen anytime once Phase 4 is stable — no reason to burn Gemini calls summarizing documents before the summary spec is actually wired up.

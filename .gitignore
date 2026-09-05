@@ -46,5 +46,5 @@ next-env.d.ts
 
 # python scraper
 scraper/venv
-scraper/__pycache__
-scraper/*.pyc
+scraper/**/__pycache__
+scraper/**/*.pyc

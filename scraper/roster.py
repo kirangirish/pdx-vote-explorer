@@ -1,10 +1,14 @@
 """
-Static roster of Portland City Council members.
+Static roster of Portland's elected officials who appear on the council
+votes page: the 12 district councilors plus the Mayor (who also casts
+recorded votes under Portland's mayor-council system).
 
-District and headshot data are fixed public facts (portland.gov/council) that
-the votes page itself never exposes, so they're maintained here rather than
-scraped per-run. Keyed by the exact name string as it appears on the votes
-page, since that's what seed_db.py has to match against.
+District and headshot data are fixed public facts (portland.gov/council,
+portland.gov/mayor) that the votes page itself never exposes, so they're
+maintained here rather than scraped per-run. Keyed by the exact name string
+as it appears on the votes page, since that's what the scraper matches
+against. District 0 marks the Mayor -- citywide, not one of the 4 geographic
+council districts -- rather than "unknown."
 """
 
 ROSTER = {
@@ -20,6 +24,7 @@ ROSTER = {
     "Eric Zimmerman":       {"slug": "eric-zimmerman",       "district": 4, "ext": "png"},
     "Mitch Green":          {"slug": "mitch-green",          "district": 4, "ext": "png"},
     "Olivia Clark":         {"slug": "olivia-clark",         "district": 4, "ext": "png"},
+    "Keith Wilson":         {"slug": "keith-wilson",         "district": 0, "ext": "png"},
 }
 
 

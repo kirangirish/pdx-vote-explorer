@@ -44,8 +44,10 @@ cd scraper
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python seed_db.py
+python run.py --pages 30   # most recent 30 pages (~60 documents); omit --pages for just the latest page
 ```
+
+Writes real vote records — real dates, real districts, real member names pulled straight from the page's own links — directly into `prisma/dev.db` via idempotent upserts (safe to re-run). `python test_parser.py` runs a regression test against a saved fixture (`scraper/fixtures/`) without touching the network. AI summary/headline/category-tag generation isn't wired in yet — see `scraper/PLAN.md` Phase 4.
 
 This hits the live site and writes directly to `prisma/dev.db`. See `scraper/PLAN.md` for what's implemented versus planned (parsing is currently fragile — read it before relying on scraper output for anything beyond local dev).
 
