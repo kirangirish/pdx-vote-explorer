@@ -20,7 +20,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). The repo ships with `prisma/dev.db` already seeded (12 council members with real district assignments and headshots, a couple of decisions with vote records), so the dashboard should show real data immediately — no migration or seeding step required.
 
-**Why the explicit `npx prisma generate` step:** newer npm versions (11+) gate package install scripts behind an `allowScripts` allowlist, so `@prisma/client`'s normal postinstall generation step gets silently skipped — `npm install` will print `npm warn install-scripts` for a few packages but won't error. Always run `npx prisma generate` after `npm install` (or after pulling a change to `prisma/schema.prisma`) to be safe.
+**Why the explicit `npx prisma generate` step:** newer npm versions (11+) gate package install scripts behind an `allowScripts` allowlist recorded in `package.json`. This repo's `package.json` now pre-approves the packages that need it (`prisma`, `@prisma/engines`, `better-sqlite3`, `unrs-resolver`), so a plain `npm install` should build/generate everything correctly on npm 11+. Run `npx prisma generate` anyway after pulling a change to `prisma/schema.prisma`, or if you're on an npm version where this mechanism behaves differently, to be safe.
+
+**If `npm install` still doesn't build the native SQLite binding** (symptom: `Module not found: Can't resolve 'better-sqlite3'`, or a `node-gyp` error) — `better-sqlite3` is a native module. It tries to download a prebuilt binary matching your OS/architecture first, falling back to compiling locally via `node-gyp`, which needs Python 3 and a C++ toolchain (Xcode Command Line Tools on macOS, `build-essential` on Linux, the "Desktop development with C++" workload on Windows). If it's still missing after `npm install`, force it with `npm rebuild better-sqlite3`, then restart `next dev` (a stale `.next`/Turbopack cache can also show this error right after reinstalling — delete `.next` if a restart alone doesn't clear it).
 
 ## Environment variables
 
@@ -69,4 +71,5 @@ public/members/                Council member headshots
 | Member avatars show initials instead of photos | `public/members/*.png` missing — check `git status`, they should be committed |
 | `EADDRINUSE` / port 3000 already in use | Another `next dev` is running — `pkill -f "next dev"` or run `next dev -p 3001` |
 | Dashboard shows no members/decisions | `DATABASE_URL` is pointing somewhere other than `prisma/dev.db` (e.g. a stale local override) |
+| `Module not found: Can't resolve 'better-sqlite3'`, or dev server won't start at all | The native SQLite binding didn't build — see the native binding note above. Try `npm rebuild better-sqlite3`, then delete `.next` and restart `next dev` |
 | Console warning about a hydration mismatch mentioning an unfamiliar attribute on `<body>` (e.g. `cz-shortcut-listen`) | A browser extension (ColorZilla and similar tools do this) is injecting attributes into the DOM before React hydrates. Harmless and unrelated to this app's code — confirm by reloading in an incognito window with extensions disabled |
