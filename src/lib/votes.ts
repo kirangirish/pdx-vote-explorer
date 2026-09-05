@@ -16,6 +16,14 @@ export const VOTE_BADGE_STYLES: Record<string, string> = {
   ABSTAIN: "bg-abstain/10 text-abstain",
 };
 
+// Solid/high-contrast variant for an active filter selection.
+export const VOTE_BADGE_STYLES_ACTIVE: Record<string, string> = {
+  YEA: "bg-yea text-white",
+  NAY: "bg-nay text-white",
+  ABSENT: "bg-absent text-white",
+  ABSTAIN: "bg-abstain text-white",
+};
+
 export function parseCategoryTags(categoryTags: string | null): string[] {
   return categoryTags
     ? categoryTags.split(",").map((tag) => tag.trim()).filter(Boolean)
