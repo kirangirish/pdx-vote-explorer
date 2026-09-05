@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Image from "next/image";
+import { BodyTabs } from "@/components/BodyTabs";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -24,9 +25,10 @@ export default function RootLayout({
               <Image src="/portland-flag.svg" alt="" width={28} height={17} priority />
               PDX VOTE EXPLORER
             </h1>
-            <input 
-              type="text" 
-              placeholder="Search issues, votes, members..." 
+            <BodyTabs />
+            <input
+              type="text"
+              placeholder="Search issues, votes, members..."
               className="border border-gray-300 rounded-md px-3 py-1 text-sm w-64"
             />
           </nav>
