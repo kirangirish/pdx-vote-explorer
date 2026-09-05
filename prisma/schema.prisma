@@ -11,8 +11,9 @@ datasource db {
 
 model CouncilMember {
   id         String       @id @default(uuid())
+  slug       String       @unique // URL-friendly identifier, e.g. "angelita-morillo"; also matches public/members/{slug}.png
   fullName   String       @map("full_name")
-  district   Int
+  district   Int          // 1-4 for a geographic council district, 0 for the Mayor (citywide, not district-bound)
   photoUrl   String?      @map("photo_url")
   bioSummary String?      @map("bio_summary")
   votes      MemberVote[]

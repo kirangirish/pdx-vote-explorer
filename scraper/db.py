@@ -21,14 +21,17 @@ def upsert_document(cursor, doc_number: str, title: str, vote_date: str) -> None
     )
 
 
-def upsert_member(cursor, member_name: str, district: int | None) -> None:
+def upsert_member(cursor, member_name: str, district: int | None, parsed_slug: str | None = None) -> None:
     roster_entry = roster_lookup(member_name)
     resolved_district = district if district is not None else roster_entry["district"]
+    # Prefer the slug scraped straight from the member's own /council/districts/{d}/{slug}
+    # link (self-updating if a name ever changes); fall back to the static roster.
+    slug = parsed_slug or roster_entry["slug"]
     photo_url = f"/members/{roster_entry['slug']}.{roster_entry['ext']}"
     cursor.execute(
-        "INSERT INTO council_members (id, full_name, district, photo_url) VALUES (?, ?, ?, ?) "
-        "ON CONFLICT(id) DO UPDATE SET district = excluded.district, photo_url = excluded.photo_url",
-        (member_name, member_name, resolved_district, photo_url),
+        "INSERT INTO council_members (id, slug, full_name, district, photo_url) VALUES (?, ?, ?, ?, ?) "
+        "ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, district = excluded.district, photo_url = excluded.photo_url",
+        (member_name, slug, member_name, resolved_district, photo_url),
     )
 
 
@@ -50,7 +53,7 @@ def save_records(conn: sqlite3.Connection, records: list[dict]) -> dict:
             upsert_document(cursor, r["doc_number"], r["title"], r["vote_date"])
             seen_docs.add(r["doc_number"])
         if r["member_name"] not in seen_members:
-            upsert_member(cursor, r["member_name"], r["district"])
+            upsert_member(cursor, r["member_name"], r["district"], r.get("member_slug"))
             seen_members.add(r["member_name"])
         upsert_vote(cursor, r["doc_number"], r["member_name"], r["vote"])
         seen_votes.add((r["doc_number"], r["member_name"]))

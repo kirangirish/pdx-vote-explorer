@@ -2,14 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
-
-const VOTE_LABELS: Record<string, string> = {
-  YEA: "Yea",
-  NAY: "Nay",
-  ABSENT: "Absent",
-  ABSTAIN: "Abstain",
-};
-const VOTE_ORDER = ["YEA", "NAY", "ABSENT", "ABSTAIN"];
+import { VOTE_LABELS, VOTE_ORDER, parseCategoryTags, formatVoteDate } from "@/lib/votes";
 
 async function getDocument(docNumber: string) {
   return prisma.councilDocument.findUnique({
@@ -36,9 +29,7 @@ export default async function DocumentPage({
     (votesByResult[key] ??= []).push(vote.member as Member);
   }
 
-  const tags = document.categoryTags
-    ? document.categoryTags.split(",").map((tag) => tag.trim()).filter(Boolean)
-    : [];
+  const tags = parseCategoryTags(document.categoryTags);
 
   return (
     <div className="space-y-8">
@@ -62,14 +53,7 @@ export default async function DocumentPage({
         <h1 className="text-2xl font-bold text-gray-900">
           {document.aiHeadline || document.title}
         </h1>
-        <p className="text-sm text-gray-500">
-          {new Date(document.voteDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            timeZone: "UTC",
-          })}
-        </p>
+        <p className="text-sm text-gray-500">{formatVoteDate(document.voteDate)}</p>
         <p className="text-gray-700">
           {document.aiSummary || "No AI summary generated yet for this item."}
         </p>

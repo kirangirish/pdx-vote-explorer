@@ -1,7 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export type Member = {
   id: string;
+  slug: string;
   fullName: string;
   district: number;
   photoUrl: string | null;
@@ -24,8 +26,9 @@ export function MemberAvatar({
   size?: number;
 }) {
   return (
-    <div
-      className="group relative rounded-full ring-2 ring-transparent hover:ring-pdx-green transition cursor-pointer"
+    <Link
+      href={`/members/${member.slug}`}
+      className="group relative block rounded-full ring-2 ring-transparent hover:ring-pdx-green transition"
       style={{ width: size, height: size }}
     >
       {member.photoUrl ? (
@@ -47,6 +50,6 @@ export function MemberAvatar({
           {member.fullName}
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

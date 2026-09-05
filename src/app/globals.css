@@ -9,9 +9,10 @@
   --color-pdx-blue: #418FDE;
   
   /* Functional Status Palette */
-  --color-yea: #10b981;    /* Emerald */
-  --color-nay: #fb7185;    /* Coral */
-  --color-absent: #64748b; /* Slate */
+  --color-yea: #10b981;     /* Emerald */
+  --color-nay: #fb7185;     /* Coral */
+  --color-absent: #64748b;  /* Slate */
+  --color-abstain: #a855f7; /* Purple */
 }
 
 @layer base {
