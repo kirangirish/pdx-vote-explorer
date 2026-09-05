@@ -67,7 +67,7 @@ export default async function DocumentPage({
           <div className="space-y-8">
             {VOTE_ORDER.filter((key) => votesByResult[key]?.length).map((key) => (
               <div key={key}>
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   {VOTE_LABELS[key] ?? key} ({votesByResult[key].length})
                 </h3>
                 <div className="flex flex-wrap gap-4">
