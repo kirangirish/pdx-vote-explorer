@@ -48,3 +48,8 @@ next-env.d.ts
 scraper/venv
 scraper/**/__pycache__
 scraper/**/*.pyc
+
+# local sqlite data -- not a real persistence story, see README "Database" section.
+# each dev generates their own via `npx prisma migrate deploy` + the scraper.
+/prisma/dev.db
+/prisma/*.db-journal
