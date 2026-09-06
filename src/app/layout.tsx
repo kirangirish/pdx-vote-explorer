@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { BodyTabs } from "@/components/BodyTabs";
+import { SearchBar } from "@/components/SearchBar";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -28,14 +28,7 @@ export default function RootLayout({
               PDX VOTE EXPLORER
             </h1>
             <BodyTabs />
-            <div className="relative hidden sm:block">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search issues, votes, members..."
-                className="border border-gray-300 rounded-full pl-9 pr-4 py-1.5 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-pdx-blue/30 focus:border-pdx-blue transition"
-              />
-            </div>
+            <SearchBar />
           </nav>
         </header>
         <main className="max-w-7xl mx-auto p-4 flex-1 w-full">{children}</main>
