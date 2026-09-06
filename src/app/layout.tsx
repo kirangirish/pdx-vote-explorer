@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Image from "next/image";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import { BodyTabs } from "@/components/BodyTabs";
 import "./globals.css";
@@ -19,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="antialiased bg-gray-50 text-gray-900">
+      <body className="antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col">
         <header className="bg-white shadow-sm border-b border-gray-200">
           <nav className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
             <h1 className="flex items-center gap-2 text-xl font-black tracking-tight text-pdx-blue shrink-0">
@@ -37,7 +38,15 @@ export default function RootLayout({
             </div>
           </nav>
         </header>
-        <main className="max-w-7xl mx-auto p-4">{children}</main>
+        <main className="max-w-7xl mx-auto p-4 flex-1 w-full">{children}</main>
+        <footer className="border-t border-gray-200 py-6">
+          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm text-gray-500">
+            <span>Free and open civic data. No paywall, ever.</span>
+            <Link href="/about" className="font-semibold text-pdx-blue hover:underline">
+              Our Ethos
+            </Link>
+          </div>
+        </footer>
       </body>
     </html>
   );
