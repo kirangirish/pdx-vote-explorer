@@ -6,7 +6,7 @@ import { parseCategoryTags, humanizeFallbackTitle } from "@/lib/votes";
 import { categoryStyle } from "@/lib/categories";
 import { GOVERNING_BODIES, type GoverningBody } from "@/lib/governing-body";
 
-const RECENT_DECISIONS_LIMIT = 12;
+const RECENT_DECISIONS_LIMIT = 3;
 
 async function getDashboardData(governingBody: GoverningBody) {
   const members = await prisma.councilMember.findMany({ where: { governingBody } });
