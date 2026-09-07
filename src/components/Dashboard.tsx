@@ -56,7 +56,10 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
           </Link>
         </div>
         <div className="max-h-[32rem] overflow-y-auto pr-1">
-          <DecisionsList decisions={recentDecisions} />
+          <DecisionsList
+            decisions={recentDecisions}
+            categoryHref={(tag) => `${config.decisionsHref}?category=${encodeURIComponent(tag)}`}
+          />
         </div>
       </section>
 

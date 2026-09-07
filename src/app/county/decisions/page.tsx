@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { DecisionsList } from "@/components/DecisionsList";
+import { categoryStyle } from "@/lib/categories";
 import { GOVERNING_BODIES } from "@/lib/governing-body";
 
 export const metadata = {
@@ -9,10 +10,18 @@ export const metadata = {
   description: "Every recorded Multnomah County Board decision.",
 };
 
-export default async function CountyDecisionsPage() {
+export default async function CountyDecisionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
   const config = GOVERNING_BODIES.multnomah_county;
   const decisions = await prisma.councilDocument.findMany({
-    where: { governingBody: "multnomah_county" },
+    where: {
+      governingBody: "multnomah_county",
+      ...(category ? { categoryTags: { contains: category } } : {}),
+    },
     orderBy: { voteDate: "desc" },
     include: { votes: true },
   });
@@ -29,9 +38,21 @@ export default async function CountyDecisionsPage() {
         <p className="text-sm text-gray-500 mt-1">
           Every recorded {config.fullName} decision, most recent first.
         </p>
+        {category && (
+          <Link
+            href="/county/decisions"
+            className={`${categoryStyle(category)} inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full mt-3 hover:opacity-70 transition`}
+          >
+            {category}
+            <X size={12} />
+          </Link>
+        )}
       </div>
 
-      <DecisionsList decisions={decisions} />
+      <DecisionsList
+        decisions={decisions}
+        categoryHref={(tag) => `/county/decisions?category=${encodeURIComponent(tag)}`}
+      />
     </div>
   );
 }
