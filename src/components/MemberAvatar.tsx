@@ -42,19 +42,19 @@ const FALLBACK_CLASSES: Record<number, string> = {
 export function MemberAvatar({
   member,
   size = 96,
+  asLink = true,
 }: {
   member: Member;
   size?: number;
+  // Set false when an ancestor already provides the click target (e.g. a
+  // chip that should be clickable as a whole) -- avoids nesting <a> tags.
+  asLink?: boolean;
 }) {
   const ringClass = RING_CLASSES[member.district] ?? RING_CLASSES[0];
   const fallbackClass = FALLBACK_CLASSES[member.district] ?? FALLBACK_CLASSES[0];
 
-  return (
-    <Link
-      href={`/members/${member.slug}`}
-      className={`group relative block rounded-full ring-2 transition-all duration-200 hover:scale-110 hover:-translate-y-0.5 ${ringClass}`}
-      style={{ width: size, height: size }}
-    >
+  const content = (
+    <>
       {member.photoUrl ? (
         <Image
           src={member.photoUrl}
@@ -74,6 +74,22 @@ export function MemberAvatar({
           {member.fullName}
         </span>
       </div>
+    </>
+  );
+
+  const className = `group relative block rounded-full ring-2 transition-all duration-200 hover:scale-110 hover:-translate-y-0.5 ${ringClass}`;
+
+  if (!asLink) {
+    return (
+      <div className={className} style={{ width: size, height: size }}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link href={`/members/${member.slug}`} className={className} style={{ width: size, height: size }}>
+      {content}
     </Link>
   );
 }

@@ -112,13 +112,16 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
           <div className="flex items-center gap-3 flex-wrap">
             <h2 className="text-xl font-black tracking-tight text-gray-900">{config.fullName}</h2>
             {atLarge && (
-              <div className="flex items-center gap-2 bg-white border border-pdx-yellow/30 rounded-full pl-1 pr-3 py-1 shadow-sm">
-                <MemberAvatar member={atLarge} size={28} />
+              <Link
+                href={`/members/${atLarge.slug}`}
+                className="flex items-center gap-2 bg-white border border-pdx-yellow/30 rounded-full pl-1 pr-3 py-1 shadow-sm hover:bg-pdx-yellow/10 hover:border-pdx-yellow/50 transition"
+              >
+                <MemberAvatar member={atLarge} size={28} asLink={false} />
                 <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-900">
                   <Star size={10} className="text-yellow-700 shrink-0" />
                   {atLarge.fullName}
                 </span>
-              </div>
+              </Link>
             )}
           </div>
           <a
