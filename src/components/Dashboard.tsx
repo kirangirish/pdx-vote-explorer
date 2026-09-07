@@ -108,8 +108,23 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
       </section>
 
       <section>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-black tracking-tight text-gray-900">{config.fullName}</h2>
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="text-xl font-black tracking-tight text-gray-900">{config.fullName}</h2>
+            {atLarge && (
+              <div
+                title={config.atLargeFact ?? undefined}
+                className={`flex items-center gap-2 bg-white border border-pdx-yellow/30 rounded-full pl-1 pr-3 py-1 shadow-sm ${config.atLargeFact ? "cursor-help" : ""}`}
+              >
+                <MemberAvatar member={atLarge} size={28} />
+                <span className="flex items-center gap-1 text-xs font-bold text-gray-900">
+                  <Star size={11} className="text-yellow-700 shrink-0" />
+                  {atLarge.fullName}
+                  {config.atLargeFact && <Info size={11} className="text-yellow-700 shrink-0" />}
+                </span>
+              </div>
+            )}
+          </div>
           <a
             href={config.findDistrictUrl}
             target="_blank"
@@ -135,29 +150,6 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
             </div>
           ))}
         </div>
-
-        {atLarge && (
-          <div className="flex justify-center mt-8">
-            <div className="relative flex flex-col items-center gap-2 bg-white border border-pdx-yellow/30 rounded-2xl px-5 py-3 shadow-sm">
-              {config.atLargeFact && (
-                <span
-                  title={config.atLargeFact}
-                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-pdx-yellow text-white flex items-center justify-center cursor-help"
-                >
-                  <Info size={12} />
-                </span>
-              )}
-              <MemberAvatar member={atLarge} size={56} />
-              <div className="text-center">
-                <p className="flex items-center justify-center gap-1 text-[10px] font-bold text-yellow-700 uppercase tracking-wider">
-                  <Star size={11} />
-                  {config.atLargeTitle}
-                </p>
-                <p className="text-sm font-bold text-gray-900">{atLarge.fullName}</p>
-              </div>
-            </div>
-          </div>
-        )}
       </section>
     </div>
   );
