@@ -11,10 +11,6 @@ export const GOVERNING_BODIES: Record<
     // at-large chip's visual weight -- it shouldn't look as minor as a
     // tiebreaker when it isn't one.
     atLargeIsVotingMember: boolean;
-    // Short, factual description of the at-large seat's role, shown next to
-    // its name when atLargeIsVotingMember is true. Null for Portland since
-    // the Mayor's chip stays compact rather than a full spotlight card.
-    atLargeBlurb: string | null;
     districts: number[];
     findDistrictUrl: string;
     homeHref: string;
@@ -27,7 +23,6 @@ export const GOVERNING_BODIES: Record<
     fullName: "Portland City Council",
     atLargeTitle: "Mayor",
     atLargeIsVotingMember: false,
-    atLargeBlurb: null,
     districts: [1, 2, 3, 4],
     findDistrictUrl:
       "https://pdx.maps.arcgis.com/apps/instant/lookup/index.html?appid=e2e4809ee732411c9f0dca06c78cda38",
@@ -40,8 +35,6 @@ export const GOVERNING_BODIES: Record<
     fullName: "Multnomah County Board",
     atLargeTitle: "Chair",
     atLargeIsVotingMember: true,
-    atLargeBlurb:
-      "Elected countywide. Unlike Portland's Mayor, the Chair is a full voting member of the Board and serves as the county's chief executive, presiding over meetings and overseeing day-to-day administration.",
     districts: [1, 2, 3, 4],
     findDistrictUrl: "https://multco.maps.arcgis.com/apps/instant/lookup/index.html?appid=3f014410c5fc47528e611c85b5c4b3d0",
     homeHref: "/county",

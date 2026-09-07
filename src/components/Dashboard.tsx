@@ -135,26 +135,18 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
           </a>
         </div>
 
-        {atLarge && config.atLargeIsVotingMember && (
-          <Link
-            href={`/members/${atLarge.slug}`}
-            className="flex items-center gap-5 bg-white border border-pdx-yellow/30 rounded-2xl p-5 shadow-sm mb-6 hover:bg-pdx-yellow/5 hover:border-pdx-yellow/50 transition"
-          >
-            <MemberAvatar member={atLarge} size={96} asLink={false} />
-            <div>
-              <p className="flex items-center gap-1.5 text-xs font-bold text-yellow-700 uppercase tracking-wider mb-1">
-                <Star size={13} />
+        <div
+          className={`grid grid-cols-2 ${config.atLargeIsVotingMember ? "sm:grid-cols-5" : "sm:grid-cols-4"} gap-6`}
+        >
+          {atLarge && config.atLargeIsVotingMember && (
+            <div className="flex flex-col items-center gap-6">
+              <span className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-pdx-yellow text-white">
+                <Star size={11} className="shrink-0" />
                 {config.atLargeTitle}
-              </p>
-              <p className="text-xl font-black tracking-tight text-gray-900">{atLarge.fullName}</p>
-              {config.atLargeBlurb && (
-                <p className="text-sm text-gray-600 mt-1 max-w-xl">{config.atLargeBlurb}</p>
-              )}
+              </span>
+              <MemberAvatar member={atLarge} />
             </div>
-          </Link>
-        )}
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+          )}
           {config.districts.map((district) => (
             <div key={district} className="flex flex-col items-center gap-6">
               <span
