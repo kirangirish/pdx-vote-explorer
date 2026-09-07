@@ -111,18 +111,6 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             <h2 className="text-xl font-black tracking-tight text-gray-900">{config.fullName}</h2>
-            {atLarge && config.atLargeIsVotingMember && (
-              <Link
-                href={`/members/${atLarge.slug}`}
-                className="flex items-center gap-2.5 bg-white border border-pdx-yellow/30 rounded-full pl-1 pr-4 py-1.5 shadow-sm hover:bg-pdx-yellow/10 hover:border-pdx-yellow/50 transition"
-              >
-                <MemberAvatar member={atLarge} size={40} asLink={false} />
-                <span className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
-                  <Star size={13} className="text-yellow-700 shrink-0" />
-                  {atLarge.fullName}
-                </span>
-              </Link>
-            )}
             {atLarge && !config.atLargeIsVotingMember && (
               <Link
                 href={`/members/${atLarge.slug}`}
@@ -146,6 +134,25 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
             Find your district
           </a>
         </div>
+
+        {atLarge && config.atLargeIsVotingMember && (
+          <Link
+            href={`/members/${atLarge.slug}`}
+            className="flex items-center gap-5 bg-white border border-pdx-yellow/30 rounded-2xl p-5 shadow-sm mb-6 hover:bg-pdx-yellow/5 hover:border-pdx-yellow/50 transition"
+          >
+            <MemberAvatar member={atLarge} size={96} asLink={false} />
+            <div>
+              <p className="flex items-center gap-1.5 text-xs font-bold text-yellow-700 uppercase tracking-wider mb-1">
+                <Star size={13} />
+                {config.atLargeTitle}
+              </p>
+              <p className="text-xl font-black tracking-tight text-gray-900">{atLarge.fullName}</p>
+              {config.atLargeBlurb && (
+                <p className="text-sm text-gray-600 mt-1 max-w-xl">{config.atLargeBlurb}</p>
+              )}
+            </div>
+          </Link>
+        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           {config.districts.map((district) => (
