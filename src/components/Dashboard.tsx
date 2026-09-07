@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, Info } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
 import { parseCategoryTags, humanizeFallbackTitle } from "@/lib/votes";
@@ -121,19 +121,6 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
           </a>
         </div>
 
-        {atLarge && (
-          <div className="flex items-center gap-4 bg-gradient-to-r from-pdx-yellow/15 to-transparent p-4 rounded-2xl border border-pdx-yellow/30 mb-6">
-            <MemberAvatar member={atLarge} size={64} />
-            <div>
-              <p className="flex items-center gap-1.5 text-xs font-bold text-yellow-700 uppercase tracking-wider">
-                <Star size={13} />
-                {config.atLargeTitle}
-              </p>
-              <p className="font-bold text-gray-900">{atLarge.fullName}</p>
-            </div>
-          </div>
-        )}
-
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           {config.districts.map((district) => (
             <div key={district} className="flex flex-col items-center gap-6">
@@ -148,6 +135,29 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
             </div>
           ))}
         </div>
+
+        {atLarge && (
+          <div className="flex justify-center mt-8">
+            <div className="relative flex flex-col items-center gap-2 bg-white border border-pdx-yellow/30 rounded-2xl px-5 py-3 shadow-sm">
+              {config.atLargeFact && (
+                <span
+                  title={config.atLargeFact}
+                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-pdx-yellow text-white flex items-center justify-center cursor-help"
+                >
+                  <Info size={12} />
+                </span>
+              )}
+              <MemberAvatar member={atLarge} size={56} />
+              <div className="text-center">
+                <p className="flex items-center justify-center gap-1 text-[10px] font-bold text-yellow-700 uppercase tracking-wider">
+                  <Star size={11} />
+                  {config.atLargeTitle}
+                </p>
+                <p className="text-sm font-bold text-gray-900">{atLarge.fullName}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

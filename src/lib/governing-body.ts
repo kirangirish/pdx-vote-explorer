@@ -6,27 +6,39 @@ export const GOVERNING_BODIES: Record<
     tabLabel: string;
     fullName: string;
     atLargeTitle: string; // "Mayor" or "Chair" -- the district-0 seat
+    // A short, verified fact shown as a hover tooltip on the at-large seat.
+    // Left null rather than guessing when a body's rules aren't confirmed.
+    atLargeFact: string | null;
     districts: number[];
     findDistrictUrl: string;
     homeHref: string;
+    charterUrl: string;
+    charterLabel: string;
   }
 > = {
   portland_council: {
     tabLabel: "City",
     fullName: "Portland City Council",
     atLargeTitle: "Mayor",
+    atLargeFact:
+      "Did you know? Under Portland's 2024 charter reform, the Mayor isn't a voting member of Council — except to break a tie on non-emergency ordinances.",
     districts: [1, 2, 3, 4],
     findDistrictUrl:
       "https://pdx.maps.arcgis.com/apps/instant/lookup/index.html?appid=e2e4809ee732411c9f0dca06c78cda38",
     homeHref: "/",
+    charterUrl: "https://www.portland.gov/charter",
+    charterLabel: "Portland City Charter",
   },
   multnomah_county: {
     tabLabel: "County",
     fullName: "Multnomah County Board",
     atLargeTitle: "Chair",
+    atLargeFact: null,
     districts: [1, 2, 3, 4],
     findDistrictUrl: "https://multco.maps.arcgis.com/apps/instant/lookup/index.html?appid=3f014410c5fc47528e611c85b5c4b3d0",
     homeHref: "/county",
+    charterUrl: "https://www.multco.us/county-attorney/county-charter",
+    charterLabel: "Multnomah County Home Rule Charter",
   },
 };
 
