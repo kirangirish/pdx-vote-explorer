@@ -72,7 +72,7 @@ export function SearchBar() {
   const showDropdown = open && query.trim().length >= 2;
 
   return (
-    <div ref={containerRef} className="relative hidden sm:block">
+    <div ref={containerRef} className="relative w-full sm:w-auto order-3 sm:order-none">
       <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
       <input
         type="text"
@@ -91,11 +91,11 @@ export function SearchBar() {
           }
         }}
         placeholder="Search issues, votes, members..."
-        className="border border-gray-300 rounded-full pl-9 pr-4 py-1.5 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-pdx-blue/30 focus:border-pdx-blue transition"
+        className="border border-gray-300 rounded-full pl-9 pr-4 py-1.5 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-pdx-blue/30 focus:border-pdx-blue transition"
       />
 
       {showDropdown && (
-        <div className="absolute right-0 mt-2 w-96 max-h-[28rem] overflow-y-auto bg-white rounded-2xl shadow-lg border border-gray-100 z-50">
+        <div className="absolute right-0 mt-2 w-full sm:w-96 max-h-[28rem] overflow-y-auto bg-white rounded-2xl shadow-lg border border-gray-100 z-50">
           {loading && (
             <p className="px-4 py-3 text-sm text-gray-400">Searching…</p>
           )}

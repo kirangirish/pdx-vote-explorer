@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, MapPin, Info } from "lucide-react";
+import { Star, MapPin } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
 import { parseCategoryTags, humanizeFallbackTitle } from "@/lib/votes";
@@ -112,15 +112,11 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
           <div className="flex items-center gap-3 flex-wrap">
             <h2 className="text-xl font-black tracking-tight text-gray-900">{config.fullName}</h2>
             {atLarge && (
-              <div
-                title={config.atLargeFact ?? undefined}
-                className={`flex items-center gap-2 bg-white border border-pdx-yellow/30 rounded-full pl-1 pr-3 py-1 shadow-sm ${config.atLargeFact ? "cursor-help" : ""}`}
-              >
+              <div className="flex items-center gap-2 bg-white border border-pdx-yellow/30 rounded-full pl-1 pr-3 py-1 shadow-sm">
                 <MemberAvatar member={atLarge} size={28} />
-                <span className="flex items-center gap-1 text-xs font-bold text-gray-900">
-                  <Star size={11} className="text-yellow-700 shrink-0" />
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-900">
+                  <Star size={10} className="text-yellow-700 shrink-0" />
                   {atLarge.fullName}
-                  {config.atLargeFact && <Info size={11} className="text-yellow-700 shrink-0" />}
                 </span>
               </div>
             )}

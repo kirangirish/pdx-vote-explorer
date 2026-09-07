@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col">
         <header className="bg-white shadow-sm border-b border-gray-200">
-          <nav className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+          <nav className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
             <h1 className="flex items-center gap-2 text-xl font-black tracking-tight text-pdx-blue shrink-0">
               <Image src="/portland-flag.svg" alt="" width={28} height={17} priority />
               PDX VOTE EXPLORER
