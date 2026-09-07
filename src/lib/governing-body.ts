@@ -6,6 +6,11 @@ export const GOVERNING_BODIES: Record<
     tabLabel: string;
     fullName: string;
     atLargeTitle: string; // "Mayor" or "Chair" -- the district-0 seat
+    // The Portland Mayor doesn't vote with Council except to break a tie;
+    // the Multnomah Chair is a regular voting Board member. Drives the
+    // at-large chip's visual weight -- it shouldn't look as minor as a
+    // tiebreaker when it isn't one.
+    atLargeIsVotingMember: boolean;
     districts: number[];
     findDistrictUrl: string;
     homeHref: string;
@@ -17,6 +22,7 @@ export const GOVERNING_BODIES: Record<
     tabLabel: "City",
     fullName: "Portland City Council",
     atLargeTitle: "Mayor",
+    atLargeIsVotingMember: false,
     districts: [1, 2, 3, 4],
     findDistrictUrl:
       "https://pdx.maps.arcgis.com/apps/instant/lookup/index.html?appid=e2e4809ee732411c9f0dca06c78cda38",
@@ -28,6 +34,7 @@ export const GOVERNING_BODIES: Record<
     tabLabel: "County",
     fullName: "Multnomah County Board",
     atLargeTitle: "Chair",
+    atLargeIsVotingMember: true,
     districts: [1, 2, 3, 4],
     findDistrictUrl: "https://multco.maps.arcgis.com/apps/instant/lookup/index.html?appid=3f014410c5fc47528e611c85b5c4b3d0",
     homeHref: "/county",
