@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { parseCategoryTags, humanizeFallbackTitle, tallyResult } from "@/lib/votes";
+import { parseCategoryTags, humanizeFallbackTitle, formatVoteDate, tallyResult } from "@/lib/votes";
 import { categoryStyle } from "@/lib/categories";
 
 export type Decision = {
@@ -7,6 +7,7 @@ export type Decision = {
   title: string;
   aiHeadline: string | null;
   categoryTags: string | null;
+  voteDate: Date | string;
   votes: { vote: string }[];
 };
 
@@ -46,6 +47,7 @@ export function DecisionsList({ decisions }: { decisions: Decision[] }) {
               <p className="font-bold tracking-tight text-gray-900 group-hover:text-pdx-blue transition-colors truncate">
                 {decision.aiHeadline || humanizeFallbackTitle(decision.title)}
               </p>
+              <p className="text-xs text-gray-500 mt-1">{formatVoteDate(decision.voteDate)}</p>
             </div>
             {result && (
               <span
