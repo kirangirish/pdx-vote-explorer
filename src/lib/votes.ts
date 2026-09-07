@@ -33,6 +33,18 @@ export const VOTE_BADGE_STYLES_ACTIVE: Record<string, string> = {
   ABSTAIN: "bg-abstain text-white",
 };
 
+export function tallyResult(votes: { vote: string }[]) {
+  let yea = 0;
+  let nay = 0;
+  for (const v of votes) {
+    const key = v.vote.toUpperCase();
+    if (key === "YEA") yea++;
+    else if (key === "NAY") nay++;
+  }
+  if (yea === 0 && nay === 0) return null;
+  return { yea, nay, passed: yea > nay };
+}
+
 export function parseCategoryTags(categoryTags: string | null): string[] {
   return categoryTags
     ? categoryTags.split(",").map((tag) => tag.trim()).filter(Boolean)

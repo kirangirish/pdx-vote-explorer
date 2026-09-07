@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
-import { parseCategoryTags, humanizeFallbackTitle } from "@/lib/votes";
-import { categoryStyle } from "@/lib/categories";
+import { DecisionsList } from "@/components/DecisionsList";
 import { GOVERNING_BODIES, type GoverningBody } from "@/lib/governing-body";
 
 const RECENT_DECISIONS_LIMIT = 3;
@@ -28,18 +27,6 @@ const DISTRICT_BADGE_CLASSES: Record<number, string> = {
   4: "bg-district-4 text-white",
 };
 
-function tallyResult(votes: { vote: string }[]) {
-  let yea = 0;
-  let nay = 0;
-  for (const v of votes) {
-    const key = v.vote.toUpperCase();
-    if (key === "YEA") yea++;
-    else if (key === "NAY") nay++;
-  }
-  if (yea === 0 && nay === 0) return null;
-  return { yea, nay, passed: yea > nay };
-}
-
 export async function Dashboard({ governingBody }: { governingBody: GoverningBody }) {
   const config = GOVERNING_BODIES[governingBody];
   const { members, recentDecisions } = await getDashboardData(governingBody);
@@ -58,53 +45,19 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Latest Decisions</h2>
-        {recentDecisions.length === 0 ? (
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-xl font-bold tracking-tight text-gray-900">No recent decisions found.</p>
-          </div>
-        ) : (
-          <div className="space-y-3 max-h-[32rem] overflow-y-auto pr-1">
-            {recentDecisions.map((decision) => {
-              const tags = parseCategoryTags(decision.categoryTags);
-              const result = tallyResult(decision.votes);
-              return (
-                <Link
-                  key={decision.docNumber}
-                  href={`/documents/${decision.docNumber}`}
-                  className="group flex items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-                >
-                  <div className="min-w-0">
-                    {tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-1.5">
-                        {tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className={`${categoryStyle(tag)} text-[11px] font-semibold px-2 py-0.5 rounded-full`}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <p className="font-bold tracking-tight text-gray-900 group-hover:text-pdx-blue transition-colors truncate">
-                      {decision.aiHeadline || humanizeFallbackTitle(decision.title)}
-                    </p>
-                  </div>
-                  {result && (
-                    <span
-                      className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full ${
-                        result.passed ? "bg-yea/10 text-yea" : "bg-nay/10 text-nay"
-                      }`}
-                    >
-                      {result.passed ? "PASSED" : "REJECTED"} {result.yea}:{result.nay}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        )}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Latest Decisions</h2>
+          <Link
+            href={config.decisionsHref}
+            className="flex items-center gap-1 text-sm font-semibold text-pdx-blue hover:gap-1.5 transition-all"
+          >
+            See all decisions
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+        <div className="max-h-[32rem] overflow-y-auto pr-1">
+          <DecisionsList decisions={recentDecisions} />
+        </div>
       </section>
 
       <section>

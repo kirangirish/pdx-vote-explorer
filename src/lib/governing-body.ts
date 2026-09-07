@@ -14,6 +14,7 @@ export const GOVERNING_BODIES: Record<
     districts: number[];
     findDistrictUrl: string;
     homeHref: string;
+    decisionsHref: string;
     charterUrl: string;
     charterLabel: string;
   }
@@ -27,6 +28,7 @@ export const GOVERNING_BODIES: Record<
     findDistrictUrl:
       "https://pdx.maps.arcgis.com/apps/instant/lookup/index.html?appid=e2e4809ee732411c9f0dca06c78cda38",
     homeHref: "/",
+    decisionsHref: "/decisions",
     charterUrl: "https://www.portland.gov/charter",
     charterLabel: "Portland City Charter",
   },
@@ -38,6 +40,7 @@ export const GOVERNING_BODIES: Record<
     districts: [1, 2, 3, 4],
     findDistrictUrl: "https://multco.maps.arcgis.com/apps/instant/lookup/index.html?appid=3f014410c5fc47528e611c85b5c4b3d0",
     homeHref: "/county",
+    decisionsHref: "/county/decisions",
     charterUrl: "https://www.multco.us/county-attorney/county-charter",
     charterLabel: "Multnomah County Home Rule Charter",
   },
