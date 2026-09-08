@@ -104,10 +104,12 @@ def fetch_records(cursor, pages: int | None) -> tuple[list[dict], list[int]]:
         if page > 0:
             time.sleep(1)  # be polite between requests when pulling multiple pages
 
-        print(f"Fetching page {page}...", file=sys.stderr)
         try:
             html = fetch_page(page)
         except RuntimeError as e:
+            # fetch_page's error message already includes the failing URL
+            # (with ?page=N), so this line stays self-contained without
+            # needing a separate "now fetching page N" announcement first.
             print(f"  ERROR: {e}", file=sys.stderr)
             fetch_failures.append(page)
             consecutive_failures += 1

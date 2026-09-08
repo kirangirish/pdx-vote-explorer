@@ -107,7 +107,6 @@ def fetch_meeting_records(cursor, meetings_limit: int | None) -> tuple[list[dict
     backfill = meetings_limit is not None
     candidate_limit = meetings_limit if backfill else MAX_INCREMENTAL_MEETINGS
 
-    print("Fetching meeting list...", file=sys.stderr)
     meetings = parse_meeting_list(fetch_meeting_list(), limit=candidate_limit)
     print(f"Found {len(meetings)} voting meeting(s) to check.", file=sys.stderr)
 
@@ -118,14 +117,16 @@ def fetch_meeting_records(cursor, meetings_limit: int | None) -> tuple[list[dict
         if i > 0:
             time.sleep(1)  # be polite between requests when pulling multiple meetings
 
-        print(f"  {meeting['name']} ({meeting['date']})...", file=sys.stderr)
         try:
             pdf_url = resolve_pdf_url(meeting["minutes_viewer_url"])
             if pdf_url is None:
                 raise RuntimeError("could not resolve a PDF URL from the minutes viewer link")
             text = fetch_pdf_text(pdf_url)
         except (requests.RequestException, RuntimeError) as e:
-            print(f"    ERROR: {e}", file=sys.stderr)
+            # Identify which meeting failed directly in the error line,
+            # since there's no separate "now checking meeting X" print
+            # before this to supply that context.
+            print(f"  ERROR ({meeting['name']}, {meeting['date']}): {e}", file=sys.stderr)
             fetch_failures += 1
             continue
 
