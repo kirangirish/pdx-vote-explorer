@@ -1,9 +1,20 @@
 """
 Scraper entrypoint for Multnomah County Board of Commissioners.
 
+Two distinct modes, controlled by --meetings (mirrors run.py's --pages):
+
+- Incremental (default, no --meetings given): the right mode for a daily
+  cron job. Checks voting meetings one at a time, most-recent-first, and
+  stops as soon as a meeting has nothing new to learn (checked against
+  the database itself) -- bounded by MAX_INCREMENTAL_MEETINGS as a safety
+  cap. A normal day finds nothing new at all (the Board meets roughly
+  weekly); if a run gets missed, it self-heals by walking back further.
+- Backfill (--meetings N given explicitly): a one-off historical pull.
+  Fetches exactly N meetings, full stop, regardless of what's already known.
+
 Usage:
-  python multco_run.py                  Fetch the most recent voting meeting only
-  python multco_run.py --meetings 5     Fetch the 5 most recent voting meetings
+  python multco_run.py                  Incremental: pick up whatever's new since the last run
+  python multco_run.py --meetings 20    Backfill: fetch exactly 20 meetings, one-off
   python multco_run.py --dry-run        Parse and report without writing to the DB
   python multco_run.py --no-ai          Skip AI enrichment (headline/summary/tags)
 """
@@ -20,9 +31,8 @@ from pypdf import PdfReader
 
 from multco_parser import parse_meeting_list, parse_minutes_text
 from multco_roster import lookup as roster_lookup
-from db import get_connection, save_records, upsert_enrichment
-from enrich import enrich_document
-from enrichment_cache import load_cache, save_cache
+from db import get_connection, save_records, all_records_already_current
+from pipeline import enrich_needed_documents, format_summary_line
 
 load_dotenv("../.env")
 
@@ -39,6 +49,28 @@ GOVERNING_BODY = "multnomah_county"
 # after "CAPTIONS" is a 100+ page auto-generated transcript. Capping the
 # extraction avoids wasting time decoding pages we'll throw away anyway.
 MAX_PDF_PAGES_TO_SCAN = 15
+# Safety cap for incremental mode, so a bug or a genuinely empty database
+# can't turn "pick up what's new" into an unbounded fetch loop. The Board
+# meets roughly weekly, so 10 meetings is a wide cushion for even a
+# multi-month gap in cron runs.
+MAX_INCREMENTAL_MEETINGS = 10
+
+
+def parse_args():
+    cli = argparse.ArgumentParser(description=__doc__)
+    cli.add_argument(
+        "--meetings", type=int, default=None,
+        help=(
+            "Fetch exactly this many most-recent voting meetings (one-off backfill mode, "
+            "e.g. --meetings 20). If omitted, runs in incremental mode instead: checks "
+            f"meetings one at a time (up to {MAX_INCREMENTAL_MEETINGS} as a safety cap) and "
+            "stops as soon as a meeting has nothing new -- the right default for a daily cron job."
+        ),
+    )
+    cli.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
+    cli.add_argument("--no-ai", action="store_true", help="Skip AI enrichment (headline/summary/tags)")
+    cli.add_argument("--db", default=DEFAULT_DB_PATH, help=f"Path to the sqlite db (default: {DEFAULT_DB_PATH})")
+    return cli.parse_args()
 
 
 def resolve_member(member_name: str, record: dict) -> dict:
@@ -79,21 +111,24 @@ def fetch_pdf_text(pdf_url: str) -> str:
     return text
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--meetings", type=int, default=1, help="Number of most-recent voting meetings to fetch (default: 1)")
-    parser.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
-    parser.add_argument("--no-ai", action="store_true", help="Skip AI enrichment (headline/summary/tags)")
-    parser.add_argument("--db", default=DEFAULT_DB_PATH, help=f"Path to the sqlite db (default: {DEFAULT_DB_PATH})")
-    args = parser.parse_args()
+def fetch_meeting_records(cursor, meetings_limit: int | None) -> tuple[list[dict], int]:
+    """Fetches and parses voting meetings, in either backfill or
+    incremental mode (see module docstring). Returns
+    (records, fetch_failure_count)."""
+    backfill = meetings_limit is not None
+    candidate_limit = meetings_limit if backfill else MAX_INCREMENTAL_MEETINGS
 
     print("Fetching meeting list...", file=sys.stderr)
-    meetings = parse_meeting_list(fetch_meeting_list(), limit=args.meetings)
-    print(f"Found {len(meetings)} voting meeting(s) to process.", file=sys.stderr)
+    meetings = parse_meeting_list(fetch_meeting_list(), limit=candidate_limit)
+    print(f"Found {len(meetings)} voting meeting(s) to check.", file=sys.stderr)
 
     all_records = []
     fetch_failures = 0
-    for meeting in meetings:
+
+    for i, meeting in enumerate(meetings):
+        if i > 0:
+            time.sleep(1)  # be polite between requests when pulling multiple meetings
+
         print(f"  {meeting['name']} ({meeting['date']})...", file=sys.stderr)
         try:
             pdf_url = resolve_pdf_url(meeting["minutes_viewer_url"])
@@ -104,59 +139,57 @@ def main():
             print(f"    ERROR: {e}", file=sys.stderr)
             fetch_failures += 1
             continue
+
         records = parse_minutes_text(text, meeting["date"], source_url=pdf_url)
         all_records.extend(records)
-        if args.meetings > 1:
-            time.sleep(1)  # be polite between requests when pulling multiple meetings
 
-    print(f"Parsed {len(all_records)} vote rows across {len(meetings)} meeting(s).", file=sys.stderr)
+        if not backfill and records and all_records_already_current(cursor, records):
+            print(f"  {meeting['name']} ({meeting['date']}) has nothing new -- caught up, stopping.", file=sys.stderr)
+            break
 
-    if args.dry_run:
-        docs = {r["doc_number"] for r in all_records}
-        print(f"[dry run] Would upsert {len(docs)} documents, {len(all_records)} votes. No DB changes made.")
-        return
+    return all_records, fetch_failures
 
-    doc_titles = {r["doc_number"]: r["title"] for r in all_records}
+
+def main():
+    args = parse_args()
 
     conn = get_connection(args.db)
     try:
-        summary = save_records(conn, all_records, resolve_member, GOVERNING_BODY)
+        cursor = conn.cursor()
+        all_records, fetch_failures = fetch_meeting_records(cursor, args.meetings)
 
-        enriched, enrich_failures, cache_hits = 0, 0, 0
-        if not args.no_ai and summary["needs_enrichment"]:
-            cache = load_cache()
-            print(f"Enriching {len(summary['needs_enrichment'])} document(s)...", file=sys.stderr)
-            cursor = conn.cursor()
-            for doc_number in summary["needs_enrichment"]:
-                title = doc_titles[doc_number]
-                cached = cache.get(doc_number)
+        print(f"Parsed {len(all_records)} vote rows.", file=sys.stderr)
 
-                if cached and cached.get("title") == title:
-                    result = cached
-                    cache_hits += 1
-                else:
-                    result = enrich_document(title)
-                    if result is None:
-                        enrich_failures += 1
-                        continue
-                    cache[doc_number] = {"title": title, **result}
-                    time.sleep(1)
+        if not all_records:
+            print(
+                "ERROR: zero vote rows parsed. This almost always means either the Granicus "
+                "page or minutes PDF format changed and multco_parser.py needs updating, or "
+                "every fetch attempt failed -- aborting without writing to the database.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
-                upsert_enrichment(cursor, doc_number, result["headline"], result["summary"], result["tags"])
-                enriched += 1
-            conn.commit()
-            save_cache(cache)
+        if args.dry_run:
+            docs = {r["doc_number"] for r in all_records}
+            print(f"[dry run] Would upsert {len(docs)} documents, {len(all_records)} votes. No DB changes made.")
+            if fetch_failures:
+                print(f"[dry run] {fetch_failures} meeting(s) failed to fetch and were skipped.")
+            return
+
+        doc_titles = {r["doc_number"]: r["title"] for r in all_records}
+
+        save_summary = save_records(conn, all_records, resolve_member, GOVERNING_BODY)
+        enrichment = enrich_needed_documents(conn, doc_titles, save_summary["needs_enrichment"], args.no_ai)
     finally:
         conn.close()
 
-    print(
-        f"Done. Upserted {summary['documents']} documents, "
-        f"{summary['members']} members, {summary['votes']} votes."
-        + (f" {fetch_failures} meeting(s) failed to fetch." if fetch_failures else "")
-        + ("" if args.no_ai else f" Enriched {enriched} document(s)"
-           + (f" ({cache_hits} from cache, {enriched - cache_hits} new)." if enriched else ".")
-           + (f" {enrich_failures} enrichment failure(s)." if enrich_failures else ""))
-    )
+    failure_note = f"{fetch_failures} meeting(s) failed to fetch." if fetch_failures else ""
+    print(format_summary_line(save_summary, enrichment, args.no_ai, failure_note))
+
+    if fetch_failures:
+        # Some data was still saved successfully above, but a cron/monitoring
+        # setup should be able to see that this run was incomplete.
+        sys.exit(1)
 
 
 if __name__ == "__main__":

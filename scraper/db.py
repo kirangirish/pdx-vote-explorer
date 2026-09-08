@@ -3,6 +3,10 @@
 ON CONFLICT DO UPDATE, so re-running a scraper corrects existing rows (a
 title cleanup, a corrected vote) instead of only ever adding new ones.
 
+Also provides `all_records_already_current`, a read-only heuristic both
+entrypoints use to know when they've caught up to already-known data
+during an incremental (daily) run.
+
 Body-specific concerns (roster lookups, photo conventions, source-URL
 prefixing) live in each scraper's own module, not here -- db.py just takes
 already-resolved values plus a `governing_body` tag so a Portland district 1
@@ -27,6 +31,31 @@ def get_existing_document(cursor, doc_number: str) -> dict | None:
     if row is None:
         return None
     return {"title": row[0], "ai_headline": row[1]}
+
+
+def all_records_already_current(cursor, records: list[dict]) -> bool:
+    """True if every document referenced in `records` already exists in
+    the database with a matching title -- i.e. this batch has nothing new
+    or retitled to learn.
+
+    Used as a stopping heuristic for incremental (daily) runs: both
+    scrapers fetch most-recent-first, so once a batch (a page of votes, a
+    meeting's minutes) is all already fully known, presume everything
+    older is too, and stop instead of blindly working through everything
+    every single day.
+
+    Deliberately doesn't re-verify individual vote values (a corrected
+    vote wouldn't be caught by this) -- it only needs to be right about
+    *whether there's a new document to learn about*. Idempotent upserts
+    mean an explicit one-off backfill still self-corrects anything this
+    heuristic would miss.
+    """
+    doc_titles = {r["doc_number"]: r["title"] for r in records}
+    for doc_number, title in doc_titles.items():
+        existing = get_existing_document(cursor, doc_number)
+        if existing is None or existing["title"] != title:
+            return False
+    return True
 
 
 def upsert_document(
