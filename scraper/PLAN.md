@@ -6,11 +6,11 @@ The scraper is now a real, tested pipeline, not a set of one-off prototype scrip
 
 - `parser.py` — pure HTML parsing (no network I/O), tested against a fixture in `scraper/fixtures/`. Extracts doc number, title, doc URL, real vote date, member name, member slug, district, and vote — all straight from the page's own markup.
 - `db.py` — idempotent `ON CONFLICT DO UPDATE` upserts for documents/members/votes, so re-running the scraper corrects existing rows instead of only adding new ones.
-- `run.py` — the pipeline entrypoint: fetches N most-recent pages → parses → upserts, with `--pages`, `--dry-run`, `--db` flags and basic retry/backoff on fetch failures.
+- `run.py` — the pipeline entrypoint: fetches N most-recent pages → parses → upserts, with `--pages`, `--dry-run`, `--db` flags, retry/backoff on fetch failures, a consecutive-failure circuit breaker, and cron-visible failure exit codes.
 - `roster.py` — static district/photo lookup for the 12 councilors + the Mayor, used as a fallback when a row's own district link is missing.
 - `test_parser.py` — regression test against the fixture (`python test_parser.py`), catches parsing regressions without hitting the network.
 - `debug/` — the original one-off exploration scripts (`verify_access.py`, `inspect_html.py`, `inspect_html_body.py`), kept for manual debugging, not part of the pipeline.
-- `summarizer.py` — the real Gemini prompt for AI summaries, written but not yet wired into `run.py` (Phase 4 below).
+- `summarizer.py` — an early prototype of the Gemini prompt, superseded by `enrich.py` (Phase 4 below); dead code, nothing imports it. Also note it uses `BeautifulSoup(..., "html.parser")`, the exact parser choice the gotcha below warns against — inert only because nothing calls `scrape_votes()`.
 
 `main.py` and `seed_db.py` (the original hardcoded-date, hardcoded-district, `INSERT OR IGNORE` prototype) have been deleted — fully superseded by the above.
 
@@ -23,15 +23,19 @@ Also: `curl` gets a 403 from portland.gov's bot manager on *every* page (confirm
 
 **Phase 0 — Consolidate** ✅ Done. `debug/` holds the manual exploration scripts, `requirements.txt` pins real versions (including `html5lib`, added for the gotcha above), dead prototype code removed.
 
-**Phase 1 — Fetch layer** ✅ Done for pagination discovery and basic retry/backoff. The votes page paginates via `?page=N`, confirmed up to page 651 (652 pages × ~2 documents/page — full history back to January 6, 2021 is available, but `run.py`'s default is 1 page; a real backfill run used `--pages 30` to seed ~60 documents / 720 votes as a working dataset. A full 652-page backfill is possible but not yet attempted — would need real rate-limiting consideration for portland.gov's servers beyond the current 1s-between-pages delay.
+**Phase 1 — Fetch layer** ✅ Done, and hardened (2026-09-06). The votes page paginates via `?page=N`, confirmed up to page 651 (652 pages × ~2 documents/page — full history back to January 6, 2021 is available, but `run.py`'s default is 1 page; a real backfill run used `--pages 30` to seed ~60 documents / 720 votes as a working dataset. A full 652-page backfill is possible but not yet attempted — would need real rate-limiting consideration for portland.gov's servers beyond the current 1s-between-pages delay.
 
-**Phase 2 — Parsing layer** ✅ Done. `parser.py` + `test_parser.py` + `fixtures/votes_page.html`. Pulls the real vote date from each date heading's `<time datetime="...">` (no more hardcoded `2026-01-01`), and gets district + a photo-matching slug for free from each vote row's `/council/districts/{d}/{slug}` link — no more guessing at name variants.
+Hardening added for unattended/cron use:
+- A page that fails all 3 fetch retries no longer just silently gets skipped mid-run — the exact failed page number(s) are tracked and reported in the final summary, instead of a vague count.
+- If 3 fetch failures happen **consecutively**, the run stops requesting further pages entirely (treated as likely rate-limiting/blocking, not a transient blip) rather than continuing to hammer a server that's already signaling trouble. Whatever pages succeeded before the abort are still parsed/saved.
+- If a run parses **zero** vote rows across all requested pages, that's now treated as a hard error (nonzero exit, no DB write) rather than silently "succeeding" with nothing — this is the most likely signal that portland.gov changed its markup and `parser.py` needs updating, and previously would have gone unnoticed by a daily cron job.
+- `run.py` now exits with status 1 if any page failed to fetch (even if some data was still saved) or if zero records were parsed, so a cron/monitoring setup can alert on incomplete runs instead of only being able to grep stdout text.
+
+**Phase 2 — Parsing layer** ✅ Done. `parser.py` + `test_parser.py` + `fixtures/votes_page.html`. Pulls the real vote date from each date heading's `<time datetime="...">` (no more hardcoded `2026-01-01`), and gets district + a photo-matching slug for free from each vote row's `/council/districts/{d}/{slug}` link — no more guessing at name variants. A malformed row (missing a required field) is skipped rather than aborting the whole page, and now logs a stderr warning naming which field was missing and the row's raw text, so a real markup change during a live scrape is visible rather than silently dropping votes.
 
 **Phase 3 — Persistence layer** ✅ Done. `db.py`'s upserts are real `ON CONFLICT DO UPDATE`, verified idempotent by running `run.py` twice back-to-back with identical results.
 
-**Phase 4 — AI enrichment** — Not started. Wire `summarizer.py`'s real prompt into `run.py`, populating `aiHeadline`/`aiSummary`/`categoryTags`. Only summarize documents that are new or whose title changed, to avoid re-spending Gemini calls on unchanged rows. Add a `--no-ai` flag for fast local runs.
-
-Spec, decided 2026-09-04:
+**Phase 4 — AI enrichment** — Spec, decided 2026-09-04:
 
 - **Headline**: ≤ 60 characters, newspaper-style (states the action, not the doc number).
 - **Summary**: 2-3 sentences, ~8th-grade reading level. States what changed and who it affects. No jargon, no doc-number references, no procedural filler ("Council voted to approve...") — lead with the substance.
@@ -51,11 +55,13 @@ Spec, decided 2026-09-04:
 
 **A real constraint discovered doing the first backfill (2026-09-05): the free-tier Gemini API key has a hard 20 requests/day limit per model** (`generativelanguage.googleapis.com/generate_content_free_tier_requests`, resets daily). Backfilling all 60 seeded documents in one run got only 5 enriched before every subsequent call 429'd — the other 55 are sitting with `ai_headline = NULL` and will pick up automatically over the next several days as the scraper re-runs and the quota resets, at ~20/day. This is fine for **steady-state**: a normal day only adds a handful of new documents, well under 20. It's only the one-time historical backfill that doesn't fit in a day on the free tier. Options if faster backfill matters: upgrade to a paid Gemini tier, or just let it trickle in over the space of a few days — no code change either way, `run.py` already handles it correctly.
 
+A git-committed cache (`enrichment_cache.py`, keyed by `doc_number`, invalidated on title change) avoids re-spending quota on a document that's already been enriched once, even across a fresh clone/dev environment where `prisma/dev.db` itself is gitignored.
+
 **Phase 5 — Orchestration** ✅ Done for the fetch→parse→upsert path (`run.py`). Remaining: `--since DATE` flag.
 
-Cadence, decided 2026-09-04: **daily cron** (via launchd on macOS, or a plain crontab line — `0 6 * * * cd /path/to/pdx-vote-explorer/scraper && ./venv/bin/python run.py`). Reasoning: council votes only post after meetings (roughly weekly), so anything more frequent than daily just re-checks an unchanged page and burns Gemini calls on the enrichment step; anything less frequent (on-demand only) risks the dashboard silently going stale. Confirmed compatible with the free-tier quota above for ongoing operation, just not for the initial backfill.
+Cadence, decided 2026-09-04: **daily cron** (via launchd on macOS, or a plain crontab line — `0 6 * * * cd /path/to/pdx-vote-explorer/scraper && ./venv/bin/python run.py`). Reasoning: council votes only post after meetings (roughly weekly), so anything more frequent than daily just re-checks an unchanged page and burns Gemini calls on the enrichment step; anything less frequent (on-demand only) risks the dashboard silently going stale. Confirmed compatible with the free-tier quota above for ongoing operation, just not for the initial backfill. Now that `run.py` exits nonzero on partial/total failure, cron's own failure-mail/monitoring behavior is meaningful instead of always seeing a "successful" exit regardless of what actually happened.
 
-**Phase 6 — Validation** — Partially done. `run.py` prints a summary (documents/members/votes upserted, pages that failed to fetch) but doesn't yet report per-row parse failures with the offending raw HTML, or flag members still missing a district. Worth adding once Phase 4 lands, so one command reports the full health of a run.
+**Phase 6 — Validation** — Mostly done. `run.py` prints a summary (documents/members/votes upserted, exactly which page numbers failed to fetch) and now exits nonzero on any incomplete run. `parser.py` logs a warning to stderr, with the offending row's text and which field(s) were missing, for any row it can't parse, instead of silently dropping it. Still doesn't flag members still missing a district after resolution — lower priority for Portland specifically since district comes from each row's own `/council/districts/{d}/{slug}` link rather than a static roster; `roster.py` is only ever a fallback here.
 
 ## Multnomah County scraper (added 2026-09-05)
 
@@ -83,6 +89,7 @@ Verified against 5 real live meetings: 20 documents, 98 votes, all persisted cor
 - No dedicated county UI — county member/document pages are reachable by URL (`/members/meghan-moyer`, `/documents/2026-09-03-R.2`) since routes are already body-agnostic, but nothing in the app links to them. A homepage section (or a body switcher) is real design work, intentionally out of scope for this pass.
 - Only pulled 5 of the ~90+ voting meetings since 2010 available on Granicus. No backfill attempted yet.
 - Haven't exhaustively confirmed Board Briefings/Budget Work Sessions never have votes — `parse_meeting_list()` excludes them based on a handful of samples, worth a closer look before relying on that assumption for a real historical backfill.
+- `multco_parser.py`'s `NAME_PATTERN_RE` is built only from `multco_roster.py`'s current 5-member roster, and `parse_minutes_text` never falls back the way `multco_run.resolve_member` does — a commissioner not yet in that roster (e.g. after the Nov 3, 2026 Chair race) would have their votes silently omitted from parsed output entirely, not attributed to a fallback. Not yet fixed or even warned about; worth addressing before that election resolves. `multco_run.py` doesn't yet have the fetch-failure/circuit-breaker hardening added to `run.py` in this pass either — worth mirroring there in a follow-up.
 
 ## What's next
 Phase 4 (AI enrichment) is done for both scrapers' code paths; the remaining 55 Portland documents and all 20 Multnomah documents will pick up their headlines/summaries/tags automatically as the shared daily Gemini quota resets. A full historical backfill (Portland: `--pages 652`; Multnomah: `--meetings` for full history) is optional and can happen anytime — no reason to burn Gemini calls summarizing documents faster than the free tier allows.

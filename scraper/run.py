@@ -6,6 +6,11 @@ Usage:
   python run.py --pages 5        Fetch the 5 most recent pages
   python run.py --dry-run        Parse and report without writing to the DB
   python run.py --no-ai          Skip AI enrichment (headline/summary/tags)
+
+Exit codes: 0 on a clean run. 1 if zero vote rows were parsed at all (almost
+always a sign the site's markup changed and parser.py needs updating) or if
+any requested page failed to fetch -- both are meant to be cron-visible
+failures, not silently-swallowed partial success.
 """
 
 import argparse
@@ -33,6 +38,11 @@ HEADERS = {
 }
 DEFAULT_DB_PATH = "../prisma/dev.db"
 GOVERNING_BODY = "portland_council"
+# If this many page fetches in a row fail, treat it as likely rate-limiting
+# or blocking rather than a transient network blip -- stop requesting more
+# pages instead of continuing to hammer a server that's already signaling
+# "stop," but still process/save whatever was collected before the abort.
+MAX_CONSECUTIVE_FETCH_FAILURES = 3
 
 
 def resolve_member(member_name: str, record: dict) -> dict:
@@ -68,28 +78,50 @@ def main():
     args = parser.parse_args()
 
     all_records = []
-    parse_failures = 0
+    fetch_failures = []  # page numbers that failed to fetch, for a precise summary
+    consecutive_failures = 0
     for page in range(args.pages):
         print(f"Fetching page {page}...", file=sys.stderr)
         try:
             html = fetch_page(page)
         except RuntimeError as e:
             print(f"  ERROR: {e}", file=sys.stderr)
-            parse_failures += 1
+            fetch_failures.append(page)
+            consecutive_failures += 1
+            if consecutive_failures >= MAX_CONSECUTIVE_FETCH_FAILURES:
+                print(
+                    f"  ABORTING pagination: {consecutive_failures} consecutive page fetch "
+                    f"failures -- likely rate-limited or blocked, not a transient blip. "
+                    f"Re-run later rather than continuing to request more pages now.",
+                    file=sys.stderr,
+                )
+                break
             continue
+        consecutive_failures = 0
         records = parse_votes_page(html)
         if not records and page > 0:
-            print(f"  No records found on page {page}, stopping early.", file=sys.stderr)
+            print(f"  No records found on page {page}, stopping early (reached end of pagination).", file=sys.stderr)
             break
         all_records.extend(records)
         if args.pages > 1:
             time.sleep(1)  # be polite between requests when pulling multiple pages
 
-    print(f"Parsed {len(all_records)} vote rows across {args.pages} page(s).", file=sys.stderr)
+    print(f"Parsed {len(all_records)} vote rows.", file=sys.stderr)
+
+    if not all_records:
+        print(
+            "ERROR: zero vote rows parsed. This almost always means the site's markup changed "
+            "and parser.py needs updating, not that there's genuinely no data for the requested "
+            "page(s) -- aborting without writing to the database.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     if args.dry_run:
         docs = {r["doc_number"] for r in all_records}
         print(f"[dry run] Would upsert {len(docs)} documents, {len(all_records)} votes. No DB changes made.")
+        if fetch_failures:
+            print(f"[dry run] Page(s) {', '.join(str(p) for p in fetch_failures)} failed to fetch and were skipped.")
         return
 
     doc_titles = {r["doc_number"]: r["title"] for r in all_records}
@@ -130,11 +162,16 @@ def main():
     print(
         f"Done. Upserted {summary['documents']} documents, "
         f"{summary['members']} members, {summary['votes']} votes."
-        + (f" {parse_failures} page(s) failed to fetch." if parse_failures else "")
+        + (f" Page(s) {', '.join(str(p) for p in fetch_failures)} failed to fetch." if fetch_failures else "")
         + ("" if args.no_ai else f" Enriched {enriched} document(s)"
            + (f" ({cache_hits} from cache, {enriched - cache_hits} new)." if enriched else ".")
            + (f" {enrich_failures} enrichment failure(s)." if enrich_failures else ""))
     )
+
+    if fetch_failures:
+        # Some data was still saved successfully above, but a cron/monitoring
+        # setup should be able to see that this run was incomplete.
+        sys.exit(1)
 
 
 if __name__ == "__main__":
