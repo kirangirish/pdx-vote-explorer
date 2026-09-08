@@ -1,16 +1,11 @@
-"""Idempotent persistence for parsed vote records, shared by both scrapers
-(Portland City Council and Multnomah County). Every upsert here is a real
-ON CONFLICT DO UPDATE, so re-running a scraper corrects existing rows (a
-title cleanup, a corrected vote) instead of only ever adding new ones.
-
-Also provides `all_records_already_current`, a read-only heuristic both
-entrypoints use to know when they've caught up to already-known data
-during an incremental (daily) run.
+"""Idempotent persistence for parsed vote records, shared by both scrapers.
+Every upsert is a real ON CONFLICT DO UPDATE, so re-running corrects
+existing rows instead of only adding new ones.
 
 Body-specific concerns (roster lookups, photo conventions, source-URL
-prefixing) live in each scraper's own module, not here -- db.py just takes
-already-resolved values plus a `governing_body` tag so a Portland district 1
-and a Multnomah district 1 never get mixed together.
+prefixing) live in each scraper's own module, not here -- this module just
+takes already-resolved values plus a `governing_body` tag so a Portland
+district 1 and a Multnomah district 1 never get mixed together.
 """
 
 import sqlite3
@@ -34,21 +29,12 @@ def get_existing_document(cursor, doc_number: str) -> dict | None:
 
 
 def all_records_already_current(cursor, records: list[dict]) -> bool:
-    """True if every document referenced in `records` already exists in
-    the database with a matching title -- i.e. this batch has nothing new
-    or retitled to learn.
-
-    Used as a stopping heuristic for incremental (daily) runs: both
-    scrapers fetch most-recent-first, so once a batch (a page of votes, a
-    meeting's minutes) is all already fully known, presume everything
-    older is too, and stop instead of blindly working through everything
-    every single day.
-
-    Deliberately doesn't re-verify individual vote values (a corrected
-    vote wouldn't be caught by this) -- it only needs to be right about
-    *whether there's a new document to learn about*. Idempotent upserts
-    mean an explicit one-off backfill still self-corrects anything this
-    heuristic would miss.
+    """True if every document in `records` already exists in the database
+    with a matching title. Used by incremental (daily) runs as a stopping
+    heuristic: since both scrapers fetch most-recent-first, once a batch is
+    fully known, assume everything older is too, and stop. Doesn't
+    re-verify individual vote values -- idempotent upserts mean an explicit
+    backfill would still self-correct anything this misses.
     """
     doc_titles = {r["doc_number"]: r["title"] for r in records}
     for doc_number, title in doc_titles.items():
@@ -111,11 +97,10 @@ def upsert_vote(cursor, doc_number: str, member_id: str, vote: str) -> None:
 
 def save_records(conn: sqlite3.Connection, records: list[dict], resolve_member, governing_body: str = "portland_council") -> dict:
     """Upserts every record. `records` is a list of dicts with doc_number,
-    title, vote_date, source_url, member_name, vote (and whatever
+    title, vote_date, source_url, member_name, vote (plus whatever
     `resolve_member(member_name, record) -> {"slug", "district", "photo_url"}`
-    needs from the record, e.g. a parsed district). Returns a summary
-    including `needs_enrichment`: doc_numbers that are new, whose title
-    changed, or that have never been AI-enriched.
+    needs). Returns a summary including `needs_enrichment`: doc_numbers
+    that are new, retitled, or never AI-enriched.
     """
     seen_docs, seen_members, seen_votes = set(), set(), set()
     needs_enrichment = []

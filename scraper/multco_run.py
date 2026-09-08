@@ -1,22 +1,16 @@
 """
 Scraper entrypoint for Multnomah County Board of Commissioners.
 
-Two distinct modes, controlled by --meetings (mirrors run.py's --pages):
-
-- Incremental (default, no --meetings given): the right mode for a daily
-  cron job. Checks voting meetings one at a time, most-recent-first, and
-  stops as soon as a meeting has nothing new to learn (checked against
-  the database itself) -- bounded by MAX_INCREMENTAL_MEETINGS as a safety
-  cap. A normal day finds nothing new at all (the Board meets roughly
-  weekly); if a run gets missed, it self-heals by walking back further.
-- Backfill (--meetings N given explicitly): a one-off historical pull.
-  Fetches exactly N meetings, full stop, regardless of what's already known.
+--meetings omitted (default): incremental mode for a daily cron job.
+Checks meetings one at a time and stops once a meeting has nothing new
+(checked against the database), bounded by MAX_INCREMENTAL_MEETINGS.
+--meetings N: one-off backfill. Fetches exactly N meetings.
 
 Usage:
-  python multco_run.py                  Incremental: pick up whatever's new since the last run
-  python multco_run.py --meetings 20    Backfill: fetch exactly 20 meetings, one-off
+  python multco_run.py                  Incremental
+  python multco_run.py --meetings 20    Backfill
   python multco_run.py --dry-run        Parse and report without writing to the DB
-  python multco_run.py --no-ai          Skip AI enrichment (headline/summary/tags)
+  python multco_run.py --no-ai          Skip AI enrichment
 """
 
 import argparse
@@ -50,10 +44,10 @@ def parse_args():
     cli.add_argument(
         "--meetings", type=int, default=None,
         help=(
-            "Fetch exactly this many most-recent voting meetings (one-off backfill mode, "
-            "e.g. --meetings 20). If omitted, runs in incremental mode instead: checks "
-            f"meetings one at a time (up to {MAX_INCREMENTAL_MEETINGS} as a safety cap) and "
-            "stops as soon as a meeting has nothing new -- the right default for a daily cron job."
+            "Fetch exactly this many most-recent voting meetings (one-off backfill, e.g. "
+            f"--meetings 20). If omitted, runs incrementally instead (up to "
+            f"{MAX_INCREMENTAL_MEETINGS} meetings), stopping as soon as a meeting has "
+            "nothing new -- the default for a daily cron job."
         ),
     )
     cli.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
@@ -101,9 +95,6 @@ def fetch_pdf_text(pdf_url: str) -> str:
 
 
 def fetch_meeting_records(cursor, meetings_limit: int | None) -> tuple[list[dict], int]:
-    """Fetches and parses voting meetings, in either backfill or
-    incremental mode (see module docstring). Returns
-    (records, fetch_failure_count)."""
     backfill = meetings_limit is not None
     candidate_limit = meetings_limit if backfill else MAX_INCREMENTAL_MEETINGS
 
@@ -115,7 +106,7 @@ def fetch_meeting_records(cursor, meetings_limit: int | None) -> tuple[list[dict
 
     for i, meeting in enumerate(meetings):
         if i > 0:
-            time.sleep(1)  # be polite between requests when pulling multiple meetings
+            time.sleep(1)
 
         try:
             pdf_url = resolve_pdf_url(meeting["minutes_viewer_url"])
@@ -123,9 +114,6 @@ def fetch_meeting_records(cursor, meetings_limit: int | None) -> tuple[list[dict
                 raise RuntimeError("could not resolve a PDF URL from the minutes viewer link")
             text = fetch_pdf_text(pdf_url)
         except (requests.RequestException, RuntimeError) as e:
-            # Identify which meeting failed directly in the error line,
-            # since there's no separate "now checking meeting X" print
-            # before this to supply that context.
             print(f"  ERROR ({meeting['name']}, {meeting['date']}): {e}", file=sys.stderr)
             fetch_failures += 1
             continue
@@ -152,9 +140,8 @@ def main():
 
         if not all_records:
             print(
-                "ERROR: zero vote rows parsed. This almost always means either the Granicus "
-                "page or minutes PDF format changed and multco_parser.py needs updating, or "
-                "every fetch attempt failed -- aborting without writing to the database.",
+                "ERROR: zero vote rows parsed -- likely a Granicus/PDF format change, or "
+                "every fetch attempt failed. Aborting without writing to the database.",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -177,8 +164,6 @@ def main():
     print(format_summary_line(save_summary, enrichment, args.no_ai, failure_note))
 
     if fetch_failures:
-        # Some data was still saved successfully above, but a cron/monitoring
-        # setup should be able to see that this run was incomplete.
         sys.exit(1)
 
 

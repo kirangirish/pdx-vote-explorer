@@ -1,28 +1,21 @@
 """
 Scraper entrypoint: fetch portland.gov/council/votes -> parse -> upsert.
 
-Two distinct modes, controlled by --pages:
-
-- Incremental (default, no --pages given): the right mode for a daily
-  cron job. Fetches pages one at a time, most-recent-first, and stops as
-  soon as a page has nothing new to learn (checked against the database
-  itself, not a hardcoded date) -- bounded by MAX_INCREMENTAL_PAGES as a
-  safety cap. A normal day stops after page 0; if a run gets missed for a
-  day or two, it self-heals by walking back further instead of silently
-  missing whatever accumulated.
-- Backfill (--pages N given explicitly): a one-off historical pull.
-  Fetches exactly N pages, full stop, regardless of what's already known.
+--pages omitted (default): incremental mode for a daily cron job. Fetches
+pages one at a time and stops once a page has nothing new (checked against
+the database), bounded by MAX_INCREMENTAL_PAGES. Self-heals from a missed
+run by walking back further automatically.
+--pages N: one-off backfill. Fetches exactly N pages regardless of what's
+already known.
 
 Usage:
-  python run.py                  Incremental: pick up whatever's new since the last run
-  python run.py --pages 30       Backfill: fetch exactly 30 pages, one-off
+  python run.py                  Incremental
+  python run.py --pages 30       Backfill
   python run.py --dry-run        Parse and report without writing to the DB
-  python run.py --no-ai          Skip AI enrichment (headline/summary/tags)
+  python run.py --no-ai          Skip AI enrichment
 
-Exit codes: 0 on a clean run. 1 if zero vote rows were parsed at all (almost
-always a sign the site's markup changed and parser.py needs updating) or if
-any requested page failed to fetch -- both are meant to be cron-visible
-failures, not silently-swallowed partial success.
+Exit codes: 1 if zero rows were parsed (likely a markup change) or any page
+failed to fetch, so cron/monitoring can alert on it.
 """
 
 import argparse
@@ -54,10 +47,9 @@ def parse_args():
     cli.add_argument(
         "--pages", type=int, default=None,
         help=(
-            "Fetch exactly this many most-recent pages (one-off backfill mode, e.g. "
-            "--pages 30). If omitted, runs in incremental mode instead: fetches pages "
-            f"one at a time (up to {MAX_INCREMENTAL_PAGES} as a safety cap) and stops as "
-            "soon as a page has nothing new -- the right default for a daily cron job."
+            "Fetch exactly this many most-recent pages (one-off backfill, e.g. --pages 30). "
+            f"If omitted, runs incrementally instead (up to {MAX_INCREMENTAL_PAGES} pages), "
+            "stopping as soon as a page has nothing new -- the default for a daily cron job."
         ),
     )
     cli.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
@@ -91,8 +83,6 @@ def fetch_page(page: int, retries: int = 3) -> str:
 
 
 def fetch_records(cursor, pages: int | None) -> tuple[list[dict], list[int]]:
-    """Fetches and parses pages, in either backfill or incremental mode
-    (see module docstring). Returns (records, failed_page_numbers)."""
     backfill = pages is not None
     page_limit = pages if backfill else MAX_INCREMENTAL_PAGES
 
@@ -102,22 +92,18 @@ def fetch_records(cursor, pages: int | None) -> tuple[list[dict], list[int]]:
 
     for page in range(page_limit):
         if page > 0:
-            time.sleep(1)  # be polite between requests when pulling multiple pages
+            time.sleep(1)
 
         try:
             html = fetch_page(page)
         except RuntimeError as e:
-            # fetch_page's error message already includes the failing URL
-            # (with ?page=N), so this line stays self-contained without
-            # needing a separate "now fetching page N" announcement first.
             print(f"  ERROR: {e}", file=sys.stderr)
             fetch_failures.append(page)
             consecutive_failures += 1
             if consecutive_failures >= MAX_CONSECUTIVE_FETCH_FAILURES:
                 print(
-                    f"  ABORTING pagination: {consecutive_failures} consecutive page fetch "
-                    f"failures -- likely rate-limited or blocked, not a transient blip. "
-                    f"Re-run later rather than continuing to request more pages now.",
+                    f"  ABORTING pagination: {consecutive_failures} consecutive fetch failures "
+                    f"-- likely rate-limited or blocked. Re-run later instead of continuing.",
                     file=sys.stderr,
                 )
                 break
@@ -126,13 +112,13 @@ def fetch_records(cursor, pages: int | None) -> tuple[list[dict], list[int]]:
 
         records = parse_votes_page(html)
         if not records and page > 0:
-            print(f"  No records found on page {page}, stopping early (reached end of pagination).", file=sys.stderr)
+            print(f"  No records found on page {page}, stopping (reached end of pagination).", file=sys.stderr)
             break
 
         all_records.extend(records)
 
         if not backfill and records and all_records_already_current(cursor, records):
-            print(f"  Page {page} has nothing new -- caught up, stopping incremental fetch.", file=sys.stderr)
+            print(f"  Page {page} has nothing new -- caught up, stopping.", file=sys.stderr)
             break
 
     return all_records, fetch_failures
@@ -150,9 +136,8 @@ def main():
 
         if not all_records:
             print(
-                "ERROR: zero vote rows parsed. This almost always means the site's markup "
-                "changed and parser.py needs updating, not that there's genuinely no data for "
-                "the requested page(s) -- aborting without writing to the database.",
+                "ERROR: zero vote rows parsed -- likely a markup change in parser.py, "
+                "not genuinely empty pages. Aborting without writing to the database.",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -177,8 +162,6 @@ def main():
     print(format_summary_line(save_summary, enrichment, args.no_ai, failure_note))
 
     if fetch_failures:
-        # Some data was still saved successfully above, but a cron/monitoring
-        # setup should be able to see that this run was incomplete.
         sys.exit(1)
 
 

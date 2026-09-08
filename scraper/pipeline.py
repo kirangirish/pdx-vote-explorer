@@ -1,9 +1,6 @@
-"""
-Shared orchestration helpers used by both scraper entrypoints (run.py for
-Portland City Council, multco_run.py for Multnomah County). The AI
-enrichment loop and the final summary line were previously copy-pasted
-almost verbatim between the two -- they live here once instead.
-"""
+"""Shared orchestration helpers used by both scraper entrypoints: the AI
+enrichment loop and the final summary line, previously duplicated between
+run.py and multco_run.py."""
 
 import sys
 import time
@@ -15,13 +12,9 @@ from enrichment_cache import load_cache, save_cache
 
 def enrich_needed_documents(conn, doc_titles: dict, needs_enrichment: list, skip_ai: bool) -> dict:
     """Runs AI enrichment for every doc_number in `needs_enrichment`,
-    reusing the git-committed cache (enrichment_cache.py, keyed by
-    doc_number+title) to avoid re-spending Gemini's free-tier daily quota
-    on a document that's already been enriched once.
-
-    Returns {"enriched": int, "cache_hits": int, "failures": int} -- all
-    zero if skip_ai is True or there was nothing to enrich.
-    """
+    reusing enrichment_cache.py to avoid re-spending Gemini's free-tier
+    daily quota on a document already enriched once. Returns
+    {"enriched", "cache_hits", "failures"}."""
     result = {"enriched": 0, "cache_hits": 0, "failures": 0}
     if skip_ai or not needs_enrichment:
         return result
@@ -42,7 +35,7 @@ def enrich_needed_documents(conn, doc_titles: dict, needs_enrichment: list, skip
                 result["failures"] += 1
                 continue
             cache[doc_number] = {"title": title, **enrichment}
-            time.sleep(1)  # be polite to the Gemini API -- only for real calls, not cache hits
+            time.sleep(1)  # be polite to the Gemini API on real calls only
 
         upsert_enrichment(cursor, doc_number, enrichment["headline"], enrichment["summary"], enrichment["tags"])
         result["enriched"] += 1
@@ -53,7 +46,6 @@ def enrich_needed_documents(conn, doc_titles: dict, needs_enrichment: list, skip
 
 
 def format_summary_line(save_summary: dict, enrichment: dict, skip_ai: bool, failure_note: str = "") -> str:
-    """Builds the final one-line run summary printed by both entrypoints."""
     line = (
         f"Done. Upserted {save_summary['documents']} documents, "
         f"{save_summary['members']} members, {save_summary['votes']} votes."

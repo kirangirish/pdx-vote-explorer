@@ -1,21 +1,7 @@
-"""
-AI enrichment: headline, plain-language summary, and category tags for one
-council document, generated via Gemini. Spec (scraper/PLAN.md Phase 4):
-
-- headline: <= 60 chars, newspaper-style, states the action not the doc number.
-- summary: 2-3 sentences, ~8th-grade reading level, states what changed and
-  who it's affects. No jargon, no doc-number references, no procedural
-  filler ("Council voted to approve...") -- lead with the substance.
-- Neutrality is non-negotiable: describe what changed and who voted how,
-  never characterize a vote as good/bad/controversial/partisan. This tool
-  is used to research current officials, including ahead of contested
-  elections -- any perceived editorializing undermines its purpose.
-- tags: 1-2 tags chosen ONLY from CATEGORY_TAXONOMY (constants.py).
-
-The frontend is responsible for visibly labeling this content as
-AI-generated and citing the source record (CouncilDocument.sourceUrl) --
-this module only ever returns the generated fields, never presents them
-as unsourced fact itself.
+"""AI enrichment: headline, plain-language summary, and category tags for
+one council document, via Gemini. Full spec in scraper/PLAN.md Phase 4.
+The frontend is responsible for labeling this content as AI-generated and
+citing the source record -- this module only returns the generated fields.
 """
 
 import json
@@ -51,9 +37,9 @@ def _get_client():
 
 
 def enrich_document(title: str) -> dict | None:
-    """Returns {"headline": ..., "summary": ..., "tags": "Tag One,Tag Two"}
-    or None if generation failed or produced something unusable -- callers
-    should skip and leave the document for the next run to retry."""
+    """Returns {"headline", "summary", "tags"} or None if generation
+    failed or produced something unusable -- callers should skip and leave
+    the document for the next run to retry."""
     prompt = PROMPT_TEMPLATE.format(taxonomy=", ".join(CATEGORY_TAXONOMY), title=title)
     try:
         response = _get_client().models.generate_content(

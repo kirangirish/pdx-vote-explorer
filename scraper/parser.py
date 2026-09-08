@@ -1,18 +1,11 @@
 """
-Pure HTML parsing for the portland.gov/council/votes page. No network I/O
-here so this can be tested against a saved fixture (scraper/fixtures/).
+Pure HTML parsing for the portland.gov/council/votes page (no network I/O,
+so this is testable against a fixture in scraper/fixtures/).
 
-Page structure (confirmed against a live fixture 2026-09-05): each vote date
-renders as a `div.table-group` (an <h2> wrapping a <time datetime="...">)
-immediately followed by a sibling `div.table-responsive` containing the
-actual votes <table> for that date. One table = one council document; every
-row in its <tbody> is one member's vote on that document.
-
-The server's raw markup never closes each row's leading <th> before its
-sibling <td>s (relies on a browser's HTML5 parser to auto-close it). Must
-parse with "html5lib", which implements the same auto-closing rules a real
-browser does -- "html.parser" takes the markup literally and nests every
-<td> inside the <th>, corrupting every field.
+Must parse with "html5lib", not the default "html.parser": the site's
+markup never closes a row's <th> before its sibling <td>s, and html.parser
+takes that literally, nesting every <td> inside the <th> and corrupting
+every field. html5lib applies the same auto-closing a real browser does.
 """
 
 import re
@@ -27,14 +20,10 @@ def _cell(row, field_name, tag="td"):
 
 
 def parse_votes_page(html: str) -> list[dict]:
-    """Returns one dict per (document, member) vote row:
-    doc_number, title, doc_url, vote_date (YYYY-MM-DD), member_name,
-    member_slug, district, vote.
-
-    Any row missing a required field is skipped (not raised) so one
-    malformed row doesn't abort the whole page -- but the skip is logged to
-    stderr with the offending row's text, so silent data loss during a real
-    scrape run is visible instead of invisible.
+    """Returns one dict per (document, member) vote row: doc_number,
+    title, doc_url, vote_date (YYYY-MM-DD), member_name, member_slug,
+    district, vote. A row missing a required field is skipped and logged
+    to stderr rather than aborting the whole page.
     """
     soup = BeautifulSoup(html, "html5lib")
     records = []

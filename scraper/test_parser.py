@@ -1,7 +1,4 @@
-"""
-Regression test for parser.py against a saved fixture, so parsing logic can
-be verified without hitting the live site. Run with: python test_parser.py
-"""
+"""Regression test for parser.py against a saved fixture. Run: python test_parser.py"""
 
 from parser import parse_votes_page
 
@@ -31,8 +28,7 @@ def test_parses_expected_shape():
         assert r["vote_date"], "vote_date must never be empty"
         assert r["member_name"], "member_name must never be empty"
         assert r["vote"], "vote must never be empty"
-        # regression guard for the invalid-HTML-nesting bug: doc_number must
-        # never contain other fields' text glued onto it
+        # regression guard: doc_number must never contain other fields' text
         assert len(r["doc_number"]) < 20, f"doc_number looks corrupted: {r['doc_number']!r}"
 
 
