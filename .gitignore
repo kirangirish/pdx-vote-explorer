@@ -53,3 +53,4 @@ scraper/**/*.pyc
 # each dev generates their own via `npx prisma migrate deploy` + the scraper.
 /prisma/dev.db
 /prisma/*.db-journal
+.aider*

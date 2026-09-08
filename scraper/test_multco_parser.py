@@ -1,8 +1,4 @@
-"""
-Regression tests for multco_parser.py against saved fixtures, so parsing
-logic can be verified without hitting the network. Run with:
-python test_multco_parser.py
-"""
+"""Regression tests for multco_parser.py against saved fixtures. Run: python test_multco_parser.py"""
 
 from multco_parser import parse_meeting_list, parse_minutes_text
 
@@ -34,8 +30,7 @@ def test_parse_minutes_text():
         "2026-09-03-R.1", "2026-09-03-R.2",
     }, doc_numbers
 
-    # regression guard: title extraction must stop before the mover's name
-    # ("...Technicians. Commissioner Brim-Edwards moves...") not include it
+    # regression guard: title must stop before the mover's name, not include it
     titles = {r["doc_number"]: r["title"] for r in records}
     assert titles["2026-09-03-R.1"] == (
         "BUDGET MODIFICATION #DCJ-001-27 - DCJ ASD Reallocation of "
@@ -55,9 +50,8 @@ def test_parse_minutes_text():
     r1_votes = {r["member_name"]: r["vote"] for r in records if r["doc_number"] == "2026-09-03-R.1"}
     assert len(r1_votes) == 5 and all(v == "Yea" for v in r1_votes.values()), r1_votes
 
-    # R.2 is the real regression guard: a genuine 3-2 split, and the Chair
-    # (last-listed in both AYES and NOS in the source PDF) must resolve
-    # correctly rather than being swallowed by trailing prose.
+    # R.2 regression guard: a real 3-2 split, Chair must resolve correctly
+    # despite being last-listed and followed by trailing prose.
     r2_votes = {r["member_name"]: r["vote"] for r in records if r["doc_number"] == "2026-09-03-R.2"}
     assert r2_votes == {
         "Shannon Singleton": "Yea",

@@ -1,11 +1,21 @@
 """
 Scraper entrypoint: fetch portland.gov/council/votes -> parse -> upsert.
 
+--pages omitted (default): incremental mode for a daily cron job. Fetches
+pages one at a time and stops once a page has nothing new (checked against
+the database), bounded by MAX_INCREMENTAL_PAGES. Self-heals from a missed
+run by walking back further automatically.
+--pages N: one-off backfill. Fetches exactly N pages regardless of what's
+already known.
+
 Usage:
-  python run.py                  Fetch the most recent page (page 0) only
-  python run.py --pages 5        Fetch the 5 most recent pages
+  python run.py                  Incremental
+  python run.py --pages 30       Backfill
   python run.py --dry-run        Parse and report without writing to the DB
-  python run.py --no-ai          Skip AI enrichment (headline/summary/tags)
+  python run.py --no-ai          Skip AI enrichment
+
+Exit codes: 1 if zero rows were parsed (likely a markup change) or any page
+failed to fetch, so cron/monitoring can alert on it.
 """
 
 import argparse
@@ -16,23 +26,36 @@ import requests
 from dotenv import load_dotenv
 
 from parser import parse_votes_page
-from db import get_connection, save_records, upsert_enrichment
-from enrich import enrich_document
-from enrichment_cache import load_cache, save_cache
+from db import get_connection, save_records, all_records_already_current
+from pipeline import enrich_needed_documents, format_summary_line
 from roster import lookup as roster_lookup
+from constants import (
+    HEADERS,
+    DEFAULT_DB_PATH,
+    PORTLAND_BASE_URL as BASE_URL,
+    PORTLAND_GOV_BASE,
+    PORTLAND_GOVERNING_BODY as GOVERNING_BODY,
+    MAX_CONSECUTIVE_FETCH_FAILURES,
+    MAX_INCREMENTAL_PAGES,
+)
 
 load_dotenv("../.env")
 
-BASE_URL = "https://www.portland.gov/council/votes"
-PORTLAND_GOV_BASE = "https://www.portland.gov"
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+def parse_args():
+    cli = argparse.ArgumentParser(description=__doc__)
+    cli.add_argument(
+        "--pages", type=int, default=None,
+        help=(
+            "Fetch exactly this many most-recent pages (one-off backfill, e.g. --pages 30). "
+            f"If omitted, runs incrementally instead (up to {MAX_INCREMENTAL_PAGES} pages), "
+            "stopping as soon as a page has nothing new -- the default for a daily cron job."
+        ),
     )
-}
-DEFAULT_DB_PATH = "../prisma/dev.db"
-GOVERNING_BODY = "portland_council"
+    cli.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
+    cli.add_argument("--no-ai", action="store_true", help="Skip AI enrichment (headline/summary/tags)")
+    cli.add_argument("--db", default=DEFAULT_DB_PATH, help=f"Path to the sqlite db (default: {DEFAULT_DB_PATH})")
+    return cli.parse_args()
 
 
 def resolve_member(member_name: str, record: dict) -> dict:
@@ -59,82 +82,87 @@ def fetch_page(page: int, retries: int = 3) -> str:
     raise RuntimeError(f"Failed to fetch {url} after {retries} attempts") from last_error
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--pages", type=int, default=1, help="Number of most-recent pages to fetch (default: 1)")
-    parser.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
-    parser.add_argument("--no-ai", action="store_true", help="Skip AI enrichment (headline/summary/tags)")
-    parser.add_argument("--db", default=DEFAULT_DB_PATH, help=f"Path to the sqlite db (default: {DEFAULT_DB_PATH})")
-    args = parser.parse_args()
+def fetch_records(cursor, pages: int | None) -> tuple[list[dict], list[int]]:
+    backfill = pages is not None
+    page_limit = pages if backfill else MAX_INCREMENTAL_PAGES
 
     all_records = []
-    parse_failures = 0
-    for page in range(args.pages):
-        print(f"Fetching page {page}...", file=sys.stderr)
+    fetch_failures = []
+    consecutive_failures = 0
+
+    for page in range(page_limit):
+        if page > 0:
+            time.sleep(1)
+
         try:
             html = fetch_page(page)
         except RuntimeError as e:
             print(f"  ERROR: {e}", file=sys.stderr)
-            parse_failures += 1
+            fetch_failures.append(page)
+            consecutive_failures += 1
+            if consecutive_failures >= MAX_CONSECUTIVE_FETCH_FAILURES:
+                print(
+                    f"  ABORTING pagination: {consecutive_failures} consecutive fetch failures "
+                    f"-- likely rate-limited or blocked. Re-run later instead of continuing.",
+                    file=sys.stderr,
+                )
+                break
             continue
+        consecutive_failures = 0
+
         records = parse_votes_page(html)
         if not records and page > 0:
-            print(f"  No records found on page {page}, stopping early.", file=sys.stderr)
+            print(f"  No records found on page {page}, stopping (reached end of pagination).", file=sys.stderr)
             break
+
         all_records.extend(records)
-        if args.pages > 1:
-            time.sleep(1)  # be polite between requests when pulling multiple pages
 
-    print(f"Parsed {len(all_records)} vote rows across {args.pages} page(s).", file=sys.stderr)
+        if not backfill and records and all_records_already_current(cursor, records):
+            print(f"  Page {page} has nothing new -- caught up, stopping.", file=sys.stderr)
+            break
 
-    if args.dry_run:
-        docs = {r["doc_number"] for r in all_records}
-        print(f"[dry run] Would upsert {len(docs)} documents, {len(all_records)} votes. No DB changes made.")
-        return
+    return all_records, fetch_failures
 
-    doc_titles = {r["doc_number"]: r["title"] for r in all_records}
-    for r in all_records:
-        r["source_url"] = f"{PORTLAND_GOV_BASE}{r['doc_url']}" if r.get("doc_url") else None
+
+def main():
+    args = parse_args()
 
     conn = get_connection(args.db)
     try:
-        summary = save_records(conn, all_records, resolve_member, GOVERNING_BODY)
+        cursor = conn.cursor()
+        all_records, fetch_failures = fetch_records(cursor, args.pages)
 
-        enriched, enrich_failures, cache_hits = 0, 0, 0
-        if not args.no_ai and summary["needs_enrichment"]:
-            cache = load_cache()
-            print(f"Enriching {len(summary['needs_enrichment'])} document(s)...", file=sys.stderr)
-            cursor = conn.cursor()
-            for doc_number in summary["needs_enrichment"]:
-                title = doc_titles[doc_number]
-                cached = cache.get(doc_number)
+        print(f"Parsed {len(all_records)} vote rows.", file=sys.stderr)
 
-                if cached and cached.get("title") == title:
-                    result = cached
-                    cache_hits += 1
-                else:
-                    result = enrich_document(title)
-                    if result is None:
-                        enrich_failures += 1
-                        continue
-                    cache[doc_number] = {"title": title, **result}
-                    time.sleep(1)  # be polite to the Gemini API -- only for real calls, not cache hits
+        if not all_records:
+            print(
+                "ERROR: zero vote rows parsed -- likely a markup change in parser.py, "
+                "not genuinely empty pages. Aborting without writing to the database.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
-                upsert_enrichment(cursor, doc_number, result["headline"], result["summary"], result["tags"])
-                enriched += 1
-            conn.commit()
-            save_cache(cache)
+        if args.dry_run:
+            docs = {r["doc_number"] for r in all_records}
+            print(f"[dry run] Would upsert {len(docs)} documents, {len(all_records)} votes. No DB changes made.")
+            if fetch_failures:
+                print(f"[dry run] Page(s) {', '.join(str(p) for p in fetch_failures)} failed to fetch and were skipped.")
+            return
+
+        doc_titles = {r["doc_number"]: r["title"] for r in all_records}
+        for r in all_records:
+            r["source_url"] = f"{PORTLAND_GOV_BASE}{r['doc_url']}" if r.get("doc_url") else None
+
+        save_summary = save_records(conn, all_records, resolve_member, GOVERNING_BODY)
+        enrichment = enrich_needed_documents(conn, doc_titles, save_summary["needs_enrichment"], args.no_ai)
     finally:
         conn.close()
 
-    print(
-        f"Done. Upserted {summary['documents']} documents, "
-        f"{summary['members']} members, {summary['votes']} votes."
-        + (f" {parse_failures} page(s) failed to fetch." if parse_failures else "")
-        + ("" if args.no_ai else f" Enriched {enriched} document(s)"
-           + (f" ({cache_hits} from cache, {enriched - cache_hits} new)." if enriched else ".")
-           + (f" {enrich_failures} enrichment failure(s)." if enrich_failures else ""))
-    )
+    failure_note = f"Page(s) {', '.join(str(p) for p in fetch_failures)} failed to fetch." if fetch_failures else ""
+    print(format_summary_line(save_summary, enrichment, args.no_ai, failure_note))
+
+    if fetch_failures:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

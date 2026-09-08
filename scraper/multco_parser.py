@@ -1,41 +1,19 @@
 """
-Pure parsing for Multnomah County Board of Commissioners data. No network
-I/O here so this can be tested against a saved fixture (scraper/fixtures/).
+Pure parsing for Multnomah County Board of Commissioners data (no network
+I/O, testable against fixtures in scraper/fixtures/).
 
-Two inputs:
-1. The meeting-list HTML from multnomah.granicus.com/ViewPublisher.php --
-   `parse_meeting_list()` finds Regular/Special Board Meeting rows (the
-   only types confirmed to hold recorded votes) and their Minutes link.
-2. The text extracted (via pypdf) from a meeting's Minutes PDF --
-   `parse_minutes_text()` finds each numbered agenda item and its vote.
+parse_meeting_list() reads the Granicus meeting-list HTML.
+parse_minutes_text() reads text extracted (via pypdf) from a meeting's
+Minutes PDF: numbered agenda items (C.1, C.2... consent; R.1, R.2...
+regular), each followed by an AYES (N): Name... / NOS (N): Name... block.
+Everything from "CAPTIONS" onward is an auto-generated meeting transcript
+and is excluded. Note it's NOS, not NAYS -- a real difference from
+Portland's "Nay".
 
-Minutes PDF structure (confirmed against a real fixture, 2026-09-05): the
-first few pages are the actual minutes -- numbered items (C.1, C.2... for
-the consent agenda, R.1, R.2... for the regular agenda), each followed by
-an AYES (N): Name, Name... / NOS (N): Name, Name... block (NOS, not NAYS --
-a real difference from Portland's "Nay"). Everything from "CAPTIONS"
-onward is an auto-generated Webex transcript of the entire meeting (100+
-pages) and is not part of the formal record -- must be excluded or the
-parser wastes time scanning speaker-by-speaker chatter for a pattern that
-isn't there.
-
-Blocks are separated by blank lines in the extracted text, which is more
-reliable to split on than sentence punctuation given pypdf preserves the
-PDF's mid-sentence line wraps as literal newlines. A regular-agenda item
-(R.N) typically has its title, motion, and AYES/NOS vote all in ONE block
-(no blank line in between); a consent-agenda item (C.N) is usually just a
-title in its own block, with several C.N titles sharing ONE vote block
-for "the consent calendar" later on. Both shapes are handled the same way
-here: whichever block(s) are still pending when an AYES line is found get
-that vote applied to all of them.
-
-Name lists in the AYES/NOS text often run on into the following outcome
-sentence with no clean punctuation boundary ("...Chair Vega Pederson The
-consent agenda is approved."). Rather than fight that with a fragile
-regex boundary, `_names_from_list` just searches the raw text for known
-"<Title> <Lastname>" patterns directly and stops once it's found as many
-as the block itself declared (`AYES (N)`) -- robust regardless of what
-trailing prose got captured alongside the names.
+Blocks are split on blank lines. Name lists often run on into the next
+sentence with no clean punctuation boundary, so `_names_from_list`
+searches for known "<Title> <Lastname>" patterns directly and stops once
+it's matched as many names as the block declared (AYES (N)).
 """
 
 import re
@@ -45,17 +23,14 @@ from bs4 import BeautifulSoup
 
 from multco_roster import LAST_NAME_TO_FULL_NAME
 
-# Only these meeting types have been confirmed to hold recorded roll-call
-# votes (see scraper/PLAN.md); Board Briefings and Budget Work Sessions
-# don't appear to.
+# Only these meeting types are confirmed to hold recorded roll-call votes.
 VOTING_MEETING_TYPES = {"Regular Board Meeting", "Special Meeting"}
 
 ITEM_LABEL_RE = re.compile(r"^([CR]\.\d+)\s+(.*)", re.S)
 AYES_RE = re.compile(r"AYES\s*\((\d+)\):\s*(.*)")
 NOS_RE = re.compile(r"NOS\s*\((\d+)\):\s*(.*)")
-# Stop the title right before the motion sentence, not at the word "moves"
-# itself -- otherwise the mover's name ("Commissioner Brim-Edwards moves...")
-# gets swallowed into the title text.
+# Stop before the motion sentence, not at "moves" itself, or the mover's
+# name ("Commissioner Brim-Edwards moves...") gets swallowed into the title.
 TITLE_END_RE = re.compile(r"\b(?:Vice Chair|Chair|Commissioner)\s+[\w'-]+\s+moves\b|\bAYES\s*\(")
 STOP_MARKERS = ("CAPTIONS", "Submitted by:")
 
@@ -65,11 +40,10 @@ NAME_PATTERN_RE = re.compile(rf"\b(?:Vice Chair|Chair|Commissioner)\s+({_NAME_AL
 
 def parse_meeting_list(html: str, limit: int | None = None) -> list[dict]:
     """Returns [{name, date (YYYY-MM-DD), minutes_viewer_url}, ...] for the
-    most recent `limit` voting-type meetings (None = all), most recent
-    first, matching the page's own order. minutes_viewer_url still needs a
-    redirect-follow (see multco_run.fetch_minutes_pdf_url) to reach the
-    actual PDF -- MinutesViewer.php 302s to a Google Docs viewer URL that
-    embeds the real DocumentViewer.php PDF link in its query string.
+    most recent `limit` voting-type meetings (None = all). minutes_viewer_url
+    still needs a redirect-follow to reach the actual PDF -- MinutesViewer.php
+    302s to a Google Docs viewer URL that embeds the real DocumentViewer.php
+    link in its query string.
     """
     soup = BeautifulSoup(html, "html.parser")
     meetings = []
@@ -119,10 +93,9 @@ def _names_from_list(raw: str, expected_count: int) -> list[str]:
 
 
 def parse_minutes_text(text: str, meeting_date: str, source_url: str | None = None) -> list[dict]:
-    """Returns one dict per (agenda item, member) vote:
-    doc_number, title, vote_date, source_url, member_name, district (None
-    -- resolved later via the roster, same as parser.py's convention), vote.
-    """
+    """Returns one dict per (agenda item, member) vote: doc_number, title,
+    vote_date, source_url, member_name, district (None, resolved later via
+    the roster), vote."""
     stop_at = len(text)
     for marker in STOP_MARKERS:
         idx = text.find(marker)
@@ -130,14 +103,9 @@ def parse_minutes_text(text: str, meeting_date: str, source_url: str | None = No
             stop_at = min(stop_at, idx)
     text = text[:stop_at]
 
-    # pypdf extracts each page's footer in visual reading order, which can
-    # land it mid-sentence when a title happens to wrap across a page
-    # boundary (e.g. "...Ordinance Amending MCC Page 2 of 89 Chapter
-    # 11.500..."). Strip it globally rather than special-case every place
-    # a title might wrap.
-    # Strip the surrounding whitespace along with the footer text itself --
-    # otherwise the blank-line gap it sat in still forces an unwanted block
-    # split at that position, truncating whatever title wrapped across it.
+    # A PDF page footer ("Page 2 of 89") can land mid-title when a title
+    # wraps across a page boundary. Strip it along with surrounding
+    # whitespace, or the blank-line gap it left still forces a block split.
     text = re.sub(r"\s*Page \d+ of \d+\s*", " ", text)
 
     blocks = [_normalize_paragraph(b) for b in re.split(r"\n\s*\n", text)]

@@ -1,13 +1,13 @@
 """
 Static roster of the Multnomah County Board of Commissioners: a Chair
-(elected at-large, countywide) plus 4 district Commissioners. Confirmed
-against multco.us/elected/board-county-commissioners (2026-09-05).
+(at-large) plus 4 district Commissioners. Confirmed against
+multco.us/elected/board-county-commissioners.
 
-Keyed by the exact name string as it appears in the minutes PDFs, which
-use short forms ("Commissioner Moyer", "Chair Vega Pederson", "Vice Chair
-Jones-Dixon") rather than full names -- multco_parser.py normalizes those
-short forms to these keys before lookup. District 0 marks the Chair, same
-convention as roster.py's district 0 for Portland's Mayor.
+Keyed by full name, as expected by db.py. Minutes PDFs refer to people by
+last name with a title prefix ("Commissioner Moyer", "Chair Vega
+Pederson"), so LAST_NAME_TO_FULL_NAME maps those short forms to the
+ROSTER keys. District 0 marks the Chair, same convention roster.py uses
+for Portland's Mayor.
 """
 
 ROSTER = {
@@ -18,9 +18,6 @@ ROSTER = {
     "Vince Jones-Dixon":     {"slug": "vince-jones-dixon",     "district": 4, "ext": "png"},
 }
 
-# Minutes PDFs refer to commissioners by last name only (with an
-# honorific/title prefix), and to the Chair by last name too. Maps those
-# short forms to the ROSTER's full-name keys.
 LAST_NAME_TO_FULL_NAME = {
     "Vega Pederson": "Jessica Vega Pederson",
     "Moyer": "Meghan Moyer",
@@ -31,8 +28,8 @@ LAST_NAME_TO_FULL_NAME = {
 
 
 def lookup(member_name: str) -> dict:
-    """Returns {'slug': ..., 'district': ..., 'ext': ...} for a known member,
-    or a fallback slug/district-0 entry for anyone not yet in the roster."""
+    """Returns {'slug', 'district', 'ext'} for a known member, or a
+    fallback slug/district-0 entry for anyone not yet in the roster."""
     entry = ROSTER.get(member_name)
     if entry:
         return entry
