@@ -1,0 +1,4 @@
+backfill = pages is not None
+page_limit = pages if backfill else MAX_INCREMENTAL_PAGES
+for page in range(page_limit):
+    ...
