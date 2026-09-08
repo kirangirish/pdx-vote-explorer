@@ -16,6 +16,7 @@ browser does -- "html.parser" takes the markup literally and nests every
 """
 
 import re
+import sys
 from bs4 import BeautifulSoup
 
 DISTRICT_LINK_RE = re.compile(r"^/council/districts/(\d+)/([\w-]+)$")
@@ -29,6 +30,11 @@ def parse_votes_page(html: str) -> list[dict]:
     """Returns one dict per (document, member) vote row:
     doc_number, title, doc_url, vote_date (YYYY-MM-DD), member_name,
     member_slug, district, vote.
+
+    Any row missing a required field is skipped (not raised) so one
+    malformed row doesn't abort the whole page -- but the skip is logged to
+    stderr with the offending row's text, so silent data loss during a real
+    scrape run is visible instead of invisible.
     """
     soup = BeautifulSoup(html, "html5lib")
     records = []
@@ -53,6 +59,20 @@ def parse_votes_page(html: str) -> list[dict]:
             member_td = _cell(row, "name")
             vote_td = _cell(row, "voted-as-follows")
             if not (doc_th and title_td and member_td and vote_td):
+                missing = [
+                    label for label, cell in (
+                        ("document-number", doc_th),
+                        ("full-document-title", title_td),
+                        ("name", member_td),
+                        ("voted-as-follows", vote_td),
+                    ) if cell is None
+                ]
+                print(
+                    f"  WARNING: skipping unparseable vote row on {vote_date} "
+                    f"(missing field(s): {', '.join(missing)}): "
+                    f"{row.get_text(' ', strip=True)[:120]!r}",
+                    file=sys.stderr,
+                )
                 continue
 
             title_a = title_td.find("a")
