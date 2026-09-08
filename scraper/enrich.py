@@ -10,7 +10,7 @@ council document, generated via Gemini. Spec (scraper/PLAN.md Phase 4):
   never characterize a vote as good/bad/controversial/partisan. This tool
   is used to research current officials, including ahead of contested
   elections -- any perceived editorializing undermines its purpose.
-- tags: 1-2 tags chosen ONLY from CATEGORY_TAXONOMY below.
+- tags: 1-2 tags chosen ONLY from CATEGORY_TAXONOMY (constants.py).
 
 The frontend is responsible for visibly labeling this content as
 AI-generated and citing the source record (CouncilDocument.sourceUrl) --
@@ -24,18 +24,7 @@ import os
 from google import genai
 from google.genai import types
 
-CATEGORY_TAXONOMY = [
-    "Housing & Development",
-    "Transportation & Infrastructure",
-    "Budget & Finance",
-    "Public Safety",
-    "Parks & Environment",
-    "Contracts & Procurement",
-    "Government Operations",
-    "Other",
-]
-
-MODEL = "gemini-3.6-flash"
+from constants import CATEGORY_TAXONOMY, GEMINI_MODEL as MODEL
 
 PROMPT_TEMPLATE = """You are writing for a nonpartisan civic transparency tool that helps Portland, Oregon residents understand what their City Council voted on.
 

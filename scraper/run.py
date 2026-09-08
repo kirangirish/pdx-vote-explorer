@@ -36,29 +36,17 @@ from parser import parse_votes_page
 from db import get_connection, save_records, all_records_already_current
 from pipeline import enrich_needed_documents, format_summary_line
 from roster import lookup as roster_lookup
+from constants import (
+    HEADERS,
+    DEFAULT_DB_PATH,
+    PORTLAND_BASE_URL as BASE_URL,
+    PORTLAND_GOV_BASE,
+    PORTLAND_GOVERNING_BODY as GOVERNING_BODY,
+    MAX_CONSECUTIVE_FETCH_FAILURES,
+    MAX_INCREMENTAL_PAGES,
+)
 
 load_dotenv("../.env")
-
-BASE_URL = "https://www.portland.gov/council/votes"
-PORTLAND_GOV_BASE = "https://www.portland.gov"
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    )
-}
-DEFAULT_DB_PATH = "../prisma/dev.db"
-GOVERNING_BODY = "portland_council"
-# If this many page fetches in a row fail, treat it as likely rate-limiting
-# or blocking rather than a transient network blip -- stop requesting more
-# pages instead of continuing to hammer a server that's already signaling
-# "stop," but still process/save whatever was collected before the abort.
-MAX_CONSECUTIVE_FETCH_FAILURES = 3
-# Safety cap for incremental mode, so a bug or a genuinely empty database
-# can't turn "pick up what's new" into an unbounded fetch loop. ~2
-# documents/page, weekly meeting cadence -- 20 pages is a wide cushion
-# for even a multi-week gap in cron runs.
-MAX_INCREMENTAL_PAGES = 20
 
 
 def parse_args():

@@ -33,27 +33,16 @@ from multco_parser import parse_meeting_list, parse_minutes_text
 from multco_roster import lookup as roster_lookup
 from db import get_connection, save_records, all_records_already_current
 from pipeline import enrich_needed_documents, format_summary_line
+from constants import (
+    HEADERS,
+    DEFAULT_DB_PATH,
+    MULTCO_MEETING_LIST_URL as MEETING_LIST_URL,
+    MULTCO_GOVERNING_BODY as GOVERNING_BODY,
+    MAX_PDF_PAGES_TO_SCAN,
+    MAX_INCREMENTAL_MEETINGS,
+)
 
 load_dotenv("../.env")
-
-MEETING_LIST_URL = "https://multnomah.granicus.com/ViewPublisher.php?view_id=3"
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    )
-}
-DEFAULT_DB_PATH = "../prisma/dev.db"
-GOVERNING_BODY = "multnomah_county"
-# The real minutes narrative is only ever the first few pages; everything
-# after "CAPTIONS" is a 100+ page auto-generated transcript. Capping the
-# extraction avoids wasting time decoding pages we'll throw away anyway.
-MAX_PDF_PAGES_TO_SCAN = 15
-# Safety cap for incremental mode, so a bug or a genuinely empty database
-# can't turn "pick up what's new" into an unbounded fetch loop. The Board
-# meets roughly weekly, so 10 meetings is a wide cushion for even a
-# multi-month gap in cron runs.
-MAX_INCREMENTAL_MEETINGS = 10
 
 
 def parse_args():
