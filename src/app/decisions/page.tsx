@@ -20,7 +20,7 @@ export default async function DecisionsPage({
   const decisions = await prisma.councilDocument.findMany({
     where: {
       governingBody: "portland_council",
-      ...(category ? { categoryTags: { contains: category } } : {}),
+      ...(category ? { categoryTags: { contains: category, mode: "insensitive" } } : {}),
     },
     orderBy: { voteDate: "desc" },
     include: { votes: true },

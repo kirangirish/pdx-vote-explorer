@@ -20,7 +20,7 @@ from pypdf import PdfReader
 
 from multco_parser import parse_meeting_list, parse_minutes_text
 from multco_roster import lookup as roster_lookup
-from db import get_connection, save_records, upsert_enrichment
+from db import default_db_target, get_connection, save_records, upsert_enrichment
 from enrich import enrich_document
 from enrichment_cache import load_cache, save_cache
 
@@ -84,7 +84,7 @@ def main():
     parser.add_argument("--meetings", type=int, default=1, help="Number of most-recent voting meetings to fetch (default: 1)")
     parser.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
     parser.add_argument("--no-ai", action="store_true", help="Skip AI enrichment (headline/summary/tags)")
-    parser.add_argument("--db", default=DEFAULT_DB_PATH, help=f"Path to the sqlite db (default: {DEFAULT_DB_PATH})")
+    parser.add_argument("--db", default=default_db_target(), help="Postgres URL or path to a sqlite db (default: $DATABASE_URL if it is a Postgres URL, else " + DEFAULT_DB_PATH + ")")
     args = parser.parse_args()
 
     print("Fetching meeting list...", file=sys.stderr)

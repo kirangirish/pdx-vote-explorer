@@ -9,13 +9,55 @@ already-resolved values plus a `governing_body` tag so a Portland district 1
 and a Multnomah district 1 never get mixed together.
 """
 
+import os
 import sqlite3
 
 
-def get_connection(db_path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path)
+class _PostgresCursor:
+    """Wraps a psycopg cursor so the sqlite-style `?` placeholders below
+    work unchanged against Postgres (which uses `%s`)."""
+
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def execute(self, query, params=()):
+        return self._cursor.execute(query.replace("?", "%s"), params)
+
+    def fetchone(self):
+        return self._cursor.fetchone()
+
+
+class _PostgresConnection:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def cursor(self):
+        return _PostgresCursor(self._conn.cursor())
+
+    def commit(self):
+        self._conn.commit()
+
+    def close(self):
+        self._conn.close()
+
+
+def get_connection(target: str):
+    """`target` is either a Postgres URL (production, e.g. Supabase) or a
+    path to a local sqlite file (local dev)."""
+    if target.startswith(("postgres://", "postgresql://")):
+        import psycopg
+
+        # prepare_threshold=None: Supabase's transaction pooler doesn't
+        # support server-side prepared statements.
+        return _PostgresConnection(psycopg.connect(target, prepare_threshold=None))
+    conn = sqlite3.connect(target)
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
+
+
+def default_db_target(sqlite_fallback: str = "../prisma/dev.db") -> str:
+    url = os.environ.get("DATABASE_URL", "")
+    return url if url.startswith(("postgres://", "postgresql://")) else sqlite_fallback
 
 
 def get_existing_document(cursor, doc_number: str) -> dict | None:
@@ -80,7 +122,7 @@ def upsert_vote(cursor, doc_number: str, member_id: str, vote: str) -> None:
     )
 
 
-def save_records(conn: sqlite3.Connection, records: list[dict], resolve_member, governing_body: str = "portland_council") -> dict:
+def save_records(conn, records: list[dict], resolve_member, governing_body: str = "portland_council") -> dict:
     """Upserts every record. `records` is a list of dicts with doc_number,
     title, vote_date, source_url, member_name, vote (and whatever
     `resolve_member(member_name, record) -> {"slug", "district", "photo_url"}`

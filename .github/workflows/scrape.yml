@@ -1,0 +1,30 @@
+name: Scrape votes
+
+# Pulls the latest Portland City Council and Multnomah County votes into the
+# production (Supabase) database once a day. Upserts are idempotent, so
+# re-runs are safe. The site picks up new rows within an hour (ISR).
+on:
+  schedule:
+    - cron: "0 14 * * *" # daily, 7am Pacific (PDT)
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scraper
+    env:
+      # Supabase session pooler URL (port 5432) -- see .env.example
+      DATABASE_URL: ${{ secrets.DIRECT_URL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scraper/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: python run.py --pages 2
+      - run: python multco_run.py --meetings 1
