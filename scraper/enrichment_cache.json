@@ -1,9 +1,297 @@
 {
+  "2026-08-27-C.1": {
+    "headline": "City Writes Off Old Uncollectible Property Taxes",
+    "summary": "Portland is removing uncollectible personal property tax debts dating from 1992 through 2025 from its financial records. This change affects businesses and property owners with long-overdue tax obligations that officials determined can no longer be recovered. The action clears these inactive accounts from the city's balance sheets.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "RESOLUTION: Authorizing Cancellation of Uncollectible Personal Property Taxes for Tax Years 1992-2025."
+  },
+  "2026-08-27-R.1": {
+    "headline": "City Updates Preschool for All Tax Rules",
+    "summary": "Technical rules for the Preschool for All income tax have been updated to align with local administrative standards. These adjustments clarify how the tax is processed for high-earning residents subject to the measure. The changes ensure consistency across local tax administration guidelines.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "Public Hearing and Second Reading of Ordinance Amending MCC Chapter 11.500 \u2013 Preschool For All Program Income Tax to Reflect Certain Administrative Code Changes."
+  },
+  "2026-08-27-R.3": {
+    "headline": "City approves design plan for East Campus expansion",
+    "summary": "Design plans are moving forward for an expansion of the Department of Community Justice East Campus. The project establishes initial architectural layouts for the facility's growth. This update affects public safety staff and residents using county justice services.",
+    "tags": "Government Operations,Public Safety",
+    "title": "Resolution Approving the FAC-1 Project Plan for Design of the Department of Community Justice (DCJ) East Campus Expansion Project."
+  },
+  "2026-08-27-R.4": {
+    "headline": "City Adopts Multnomah County 2026 Climate Plan",
+    "summary": "Portland will align its climate policies with Multnomah County's 2026 Climate Justice Plan. The plan establishes regional goals to reduce pollution and address environmental risks in local neighborhoods. City bureaus will use these guidelines to direct future environmental programs and community investments.",
+    "tags": "Parks & Environment",
+    "title": "Resolution Adopting the Multnomah County 2026 Climate Justice Plan."
+  },
+  "2026-09-03-C.1": {
+    "headline": "Community Justice Staff Role Changed to Project Manager",
+    "summary": "A senior business analyst position in the Department of Community Justice Director's Office has been reclassified as a project manager. This budget adjustment updates the department's internal staffing structure to align with current administrative needs. The change primarily affects management and operations within the department.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "BUDGET MODIFICATION # DCJ-002-27 - DCJ DO Reclassification of Business Analyst Senior To Project Manager"
+  },
+  "2026-09-03-C.2": {
+    "headline": "New Members Appointed to Community Involvement Board",
+    "summary": "New members have been appointed to Portland's Community Involvement Committee to help guide public participation in local government decisions. These volunteer committee members evaluate community engagement efforts and advise city officials on public outreach. The changes affect residents looking to provide input on city planning and policy issues.",
+    "tags": "Government Operations",
+    "title": "Appointments to Community Involvement Committee"
+  },
+  "2026-09-03-C.3": {
+    "headline": "Portland Adds $80,000 for Oregon Historical Society",
+    "summary": "Portland added $80,000 to its budget for pass-through payments to the Oregon Historical Society. The additional funds increase the city's financial contribution to the organization. This update adjusts how city money is allocated to local cultural institutions.",
+    "tags": "Budget & Finance",
+    "title": "BUDGET MODIFICATION # NOND-008-26: Increasing the Appropriation for the Oregon Historical Society pass-through payments by $80,000"
+  },
+  "2026-09-03-R.1": {
+    "headline": "City Shifts Parole Officer Funds to Technician Roles",
+    "summary": "Funding for one full-time parole officer position is being shifted to create two part-time recognizance technician roles. These technicians evaluate people in custody to help determine if they can be safely released before trial. The change adjusts staffing within the justice department using existing budget funds.",
+    "tags": "Budget & Finance,Public Safety",
+    "title": "BUDGET MODIFICATION #DCJ-001-27 - DCJ ASD Reallocation of Funding from 1.00 Parole and Probation Officer to two 0.50 Recognizance Correction Technicians."
+  },
+  "2026-09-03-R.2": {
+    "headline": "City Updates Ambulance Service Rules",
+    "summary": "Portland is updating its local emergency medical services plan and regulations. The changes adjust how ambulance providers operate and coordinate emergency care across the county. These updated rules affect local medical responders and residents using emergency medical services.",
+    "tags": "Public Safety",
+    "title": "First Reading and Public Hearing of Ordinance Amending County Ambulance Service Plan and MCC 21.400, Emergency Medical Services"
+  },
+  "2026-09-10-C.1": {
+    "headline": "Human Services Reclassifies Three Vacant Jobs",
+    "summary": "The Department of County Human Services is changing the job titles and responsibilities for three open full-time positions. This update allows the agency to adjust its staffing structure to better match current workload needs. The change primarily affects internal department operations and future job applicants.",
+    "tags": "Government Operations,Budget & Finance",
+    "title": "BUDGET MODIFICATION # DCHS-001-27: Reclassification of 3.00 FTE Vacant Positions in the Department of County Human Services."
+  },
+  "2026-09-10-C.2": {
+    "headline": "Portland Expands Library Position to Full-Time",
+    "summary": "A part-time library assistant position is changing to a full-time access services assistant role. This increases the position from 30 to 40 hours per week to support daily library operations. The adjustment updates the city budget to fund the additional staffing hours.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "BUDGET MODIFICATION # LIB-002-27: Reclassifying a .75 FTE Library Assistant Position to a 1.00 FTE Access Services Asst."
+  },
+  "2026-09-10-R.1": {
+    "headline": "Preschool for All Cuts 1.2 Staff Positions",
+    "summary": "The City of Portland reduced 1.2 full-time staff positions in the Preschool for All program budget. This modification lowers the overall staffing dedicated to administering local early childhood education services. The adjustment affects municipal staff managing the program and its operational budget.",
+    "tags": "Budget & Finance",
+    "title": "BUDGET MODIFICATION # HD-003-27: Reduction of 1.20 FTE in the Preschool for All Fund."
+  },
+  "2026-09-10-R.2": {
+    "headline": "Multnomah County updates zoning to match Portland",
+    "summary": "Multnomah County updated its land use plans and zoning rules to align with recent changes made by the City of Portland. The update includes new regulations for affordable housing developments, public infrastructure, and general code improvements. It affects property owners, developers, and residents in areas where county and city land policies overlap.",
+    "tags": "Housing & Development,Government Operations",
+    "title": "Ordinance Amending Multnomah County\u2019s Comprehensive Plan, Zoning Map and Zoning Code to Incorporate Amendments to the City of Portland\u2019s Comprehensive Plan, Zoning Map and Zoning Code (Title 33) adopting the Affordable Housing Opportunities Project, the Code Alignment Project, the Public Infrastructure Environmental Code, and Regulatory Improvement Code Amendment Package 11; and Declaring an Emergency."
+  },
+  "2026-09-17-C.1": {
+    "headline": "City Reclassifies Facilities Role to Project Manager",
+    "summary": "An existing city facilities specialist job has been converted into a construction project manager position. This budget adjustment updates the job duties and pay scale for the role to focus on managing building projects. The change affects internal city personnel structure and project management.",
+    "tags": "Government Operations,Budget & Finance",
+    "title": "BUDGET MODIFICATION # DCA-002-27: Reclassification of a Facilities Specialist 3 to a Construction Project Manager."
+  },
+  "2026-09-17-C.2": {
+    "headline": "City Appoints Member to Homeless Response Committee",
+    "summary": "A new member has been appointed to the committee that oversees Portland's homelessness programs and policies. The group helps guide local shelter services and housing support initiatives. The appointment fills a seat on the board responsible for tracking regional responses to homelessness.",
+    "tags": "Housing & Development,Government Operations",
+    "title": "Authorizing the Appointment of a Member to the Homelessness Response System Steering and Oversight Committee."
+  },
+  "2026-09-17-C.3": {
+    "headline": "City seeks $50,000 grant from Cambia Health Foundation",
+    "summary": "The Health Department is preparing an application for a $50,000 grant from the Cambia Health Foundation. If awarded, the funding will support health programs and services over a two-year period. The additional resources will help fund public health operations serving local residents.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "Notice of Intent for the Health Department to submit a grant proposal  for up to $50,000 for up to 24 months to the Cambia Health Foundation."
+  },
+  "2026-09-17-C.4": {
+    "headline": "New Members Named to Historical Society Levy Committee",
+    "summary": "New members will join the panel overseeing public tax dollars allocated to the Oregon Historical Society. The committee tracks how tax revenues are spent to support historical exhibits, educational tools, and community programs. These appointments fill open seats on the citizen oversight board for 2026.",
+    "tags": "Government Operations,Budget & Finance",
+    "title": "2026 Oregon Historical Society Levy Oversight Committee Member Appointments."
+  },
+  "2026-09-17-R.1": {
+    "headline": "City Shifts Funds for 4 Juvenile Detention Staff Roles",
+    "summary": "Existing department funds were shifted to support four full-time juvenile custody specialists in detention facilities. The staff members work directly with youth in detention to maintain daily operations and facility safety. This change reallocates current funding without increasing overall spending.",
+    "tags": "Budget & Finance,Public Safety",
+    "title": "Budget Modification #DCJ-003-26: DCJ JSD Reallocation of Funding for 4.00 Juvenile Custody Services Specialists FTEs in Detention."
+  },
+  "2026-09-17-R.2": {
+    "headline": "City Adds Funding and Staff to Clinical Services",
+    "summary": "Portland is adding new revenue and hiring additional personnel for its Integrated Clinical Services division. This budget update provides more resources to support local health clinic operations. The change affects residents who use city-run community health care programs.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "BUDGET MODIFICATION # HD-004-27: Adding Additional Revenue and Personnel in Integrated Clinical Services."
+  },
+  "2026-09-17-R.3": {
+    "headline": "City Reserves Motel Rooms on NE 82nd Avenue",
+    "summary": "The city secured a block of motel rooms at 4911 NE 82nd Avenue to serve as temporary shelter. This agreement allows local agencies to place individuals needing emergency housing into these designated rooms. It affects community members seeking shelter and the surrounding neighborhood.",
+    "tags": "Housing & Development,Contracts & Procurement",
+    "title": "Resolution Approving a Room-Block Agreement (RBA) at the Motel Located at 4911 NE 82nd Ave, Portland, Oregon."
+  },
+  "2026-124": {
+    "headline": "City Launches Moderate-Income Revolving Loan Program",
+    "summary": "A new revolving loan fund will provide financing for moderate-income housing projects in Portland. The program reuses repaid loans to continually fund developments aimed at middle-income households. It primarily affects local housing developers and middle-income residents seeking affordable housing options.",
+    "tags": "Housing & Development,Budget & Finance",
+    "title": "Adopt and implement the Moderate-Income Revolving Loan Program"
+  },
+  "2026-149": {
+    "headline": "Portland prohibits sales of force-fed poultry",
+    "summary": "Businesses in Portland are now prohibited from selling or providing certain force-fed poultry products, such as foie gras. The rule applies to local retailers, restaurants, and food vendors operating within city limits.",
+    "tags": "Government Operations",
+    "title": "Add Code to prohibit the sale or provision of certain force-fed poultry products (add Code Chapter 17.110)"
+  },
+  "2026-152": {
+    "headline": "Portland Updates Permitting and Development Fees",
+    "summary": "Portland is updating its building and development permit fees to help the city cover its operating costs. These changes affect property owners, developers, and contractors seeking permits for construction and land use projects. The new rates adjust fee schedules to match the actual cost of providing permitting services.",
+    "tags": "Housing & Development,Budget & Finance",
+    "title": "Amend Portland Permitting & Development Fee Schedules to improve cost recovery to ensure an adequate level of service"
+  },
+  "2026-165": {
+    "headline": "Portland issues $235M in bonds for sewer upgrades",
+    "summary": "Portland is borrowing up to $235 million through bonds to fund repairs and upgrades to the city's sewer system. A portion of the funds will also be used to refinance existing sewer debt. The projects will maintain wastewater infrastructure serving residents and businesses across the city.",
+    "tags": "Transportation & Infrastructure,Budget & Finance",
+    "title": "Authorize sewer revenue bonds to finance sewer system capital improvements for an amount sufficient to produce net proceeds of up to $235 million and to refund outstanding sewer revenue bonds"
+  },
+  "2026-166": {
+    "headline": "Portland Designates 12 Heritage Trees, Removes 14",
+    "summary": "Twelve trees across Portland have gained official Heritage Tree status, giving them special protections and recognition. Fourteen other trees lost their status, making them no longer subject to heritage tree preservation rules. This update affects city arborists and neighborhood property owners where these trees are located.",
+    "tags": "Parks & Environment",
+    "title": "Approve the designation of twelve trees as City Heritage Trees and remove the City Heritage Tree designation from fourteen trees"
+  },
+  "2026-167": {
+    "headline": "City to Acquire Land for SE 174th Sidewalk Project",
+    "summary": "Portland is acquiring property rights along Southeast 174th Avenue between Kelly and Francis streets to build missing sidewalks. The city will use eminent domain authority to gain temporary and permanent access from private property owners along the route. This project impacts nearby land owners and pedestrians traveling through the neighborhood.",
+    "tags": "Transportation & Infrastructure",
+    "title": "Authorize the Bureau of Transportation to acquire certain permanent and temporary property rights necessary for the construction of the 174th Sidewalk Infill Kelly to Francis streets, SE Project, through the exercise of the City\u2019s eminent domain authority"
+  },
+  "2026-174": {
+    "headline": "Portland Ends Registration Rules for Sidewalk Signs",
+    "summary": "Business owners and residents placing portable signs on public sidewalks no longer need to register them with the city. The update also transfers responsibility for monitoring these signs to the city department that manages public streets.",
+    "tags": "Government Operations,Transportation & Infrastructure",
+    "title": "Amend City Code to transfer oversight of portable sign placement in the right of way and remove registration requirements (amend Code Title 32 and add Code Chapter 17.110)"
+  },
+  "2026-175": {
+    "headline": "City Creates Cable Franchise Fund for Planning Bureau",
+    "summary": "The Bureau of Planning and Sustainability now has a dedicated fund to manage cable television revenues collected for public, educational, and government broadcasting. This change helps the bureau oversee local cable franchises and work with neighboring governments on shared media agreements.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "Authorize a Cable Franchise Fund for the Bureau of Planning and Sustainability to support the collection of Public, Education, and Government revenues and manage cable franchise work related to intergovernmental agreements with jurisdictions"
+  },
+  "2026-176": {
+    "headline": "City Code Updated to Remove Cable Regulatory Board",
+    "summary": "Portland updated its municipal code to remove references to the Mt. Hood Cable Regulatory Commission following the group's dissolution. The commission previously managed local cable television franchises and funded community technology grants across the region. Cable regulatory responsibilities and franchise management will now be handled directly by the city.",
+    "tags": "Government Operations",
+    "title": "Amend City Code to reflect the dissolution of the Mt. Hood Cable Regulatory Commission\u200b (amend Code Chapters 3.33 and 3.115)"
+  },
   "2026-186": {
     "headline": "Portland Creates Psychedelic Health and Safety Rules",
     "summary": "Portland established a new city code governing psychedelic health and safety. The regulations set local guidelines and safety standards for the use and administration of psychedelic substances. These rules apply to service providers, businesses, and residents participating in regulated psychedelic programs within the city.",
     "tags": "Public Safety,Government Operations",
     "title": "Add Psychedelic Health and Safety Code (add Code Chapter 14B.140)"
+  },
+  "2026-189": {
+    "headline": "Portland Amends Land Use and Sign Regulations",
+    "summary": "Portland updated its zoning and sign regulations to streamline technical land use rules across the city. The changes clarify development standards, update definitions, and adjust guidelines for property owners and builders. These updates affect residents, local business owners, and land developers planning future construction projects.",
+    "tags": "Housing & Development,Government Operations",
+    "title": "\u200b\u200bAmend City Code and improve land use regulations through the Regulatory Improvement Code Amendment Package 11 (amend Code Titles 32 and 33)\u200b"
+  },
+  "2026-192": {
+    "headline": "Portland Creates Resource Center for Ride-Hail Drivers",
+    "summary": "Rideshare drivers in Portland will have access to a new Drivers\u2019 Resource Center to support their work. The city also updated traffic rules to clarify how local ride fees apply to services like Uber and Lyft. These changes affect rideshare drivers, transportation companies, and passengers.",
+    "tags": "Transportation & Infrastructure,Government Operations",
+    "title": "*Amend Vehicles and Traffic Code to clarify applicability of ride fees and establish a Drivers\u2019 Resource Center for Transportation Network Company drivers (amend Code Sections 16.40.030 and 16.40.240)"
+  },
+  "2026-194": {
+    "headline": "Council Certifies Services to Secure State Funding",
+    "summary": "Portland confirmed it provides required municipal services, securing the city's eligibility for state tax revenues. This allows the city to receive its annual share of money collected by Oregon. The funding supports general city operations and local public services.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "Certify that certain services are provided by the City to establish eligibility for State Shared Revenues"
+  },
+  "2026-195": {
+    "headline": "Portland Accepts State Revenue Funds for 2026-27",
+    "summary": "Portland will accept state funding through Oregon's revenue sharing program for the 2026-2027 fiscal year. These funds support general city operations and public services for residents across the city. The money will help cover city expenses starting July 1, 2026.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "*Approve accepting funds from the State of Oregon under the State Revenue Sharing Program for the fiscal year beginning July 1, 2026 and ending June 30, 2027"
+  },
+  "2026-196": {
+    "headline": "Portland Adopts FY 2026-2027 City Budget",
+    "summary": "Portland has established its official spending plan for the fiscal year running from July 1, 2026, through June 30, 2027. The budget allocates public funds for city services, staff, and public infrastructure projects. It affects all Portland residents and businesses that rely on city services or pay municipal taxes.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "Adopt the annual budget of the City and establish appropriations for the fiscal year beginning July 1, 2026 and ending June 30, 2027"
+  },
+  "2026-197": {
+    "headline": "Portland Sets City Taxes for 2026-2027 Fiscal Year",
+    "summary": "Portland property taxes are established for the 2026-2027 fiscal year starting July 1, 2026. The tax revenues will fund general city services and operations over the twelve-month period. This tax levy applies to property owners living within Portland city limits.",
+    "tags": "Budget & Finance",
+    "title": "*Approve levying taxes for the City for the fiscal year beginning July 1, 2026 and ending June 30, 2027"
+  },
+  "2026-198": {
+    "headline": "City Loans $600,000 from Parks to Hydroelectric Fund",
+    "summary": "Portland's Hydroelectric Power Operating Fund is receiving a temporary $600,000 loan from the Parks Capital Fund to cover short-term expenses. The transfer prevents the hydroelectric program from running a negative cash balance through the 2025-26 fiscal year-end. The borrowed money will be fully repaid to the city's parks capital account.",
+    "tags": "Budget & Finance,Parks & Environment",
+    "title": "*Authorize a temporary interfund loan not to exceed $600,000 from the Parks Capital Fund to the Hydroelectric Power Operating Fund to provide interim funding to avoid negative cash and fund balances at 2025-26 fiscal year-end"
+  },
+  "2026-199": {
+    "headline": "City Adjusts Funds in 2025-26 Supplemental Budget",
+    "summary": "Portland updated its 2025-26 city budget to cover over-spending across several city funds. These financial adjustments shift money between various municipal departments to balance operational costs. The changes affect how city departments manage their funding and spending for the remainder of the fiscal year.",
+    "tags": "Budget & Finance",
+    "title": "Adopt the Supplemental Budget for the FY 2025-26 over-expenditure process and make budget adjustments in various funds"
+  },
+  "2026-203": {
+    "headline": "City Restores Permitting Improvement Team",
+    "summary": "Portland is bringing back a specialized team to update and align the city's building and land-use rules. This second phase of the project focuses on making the city's permitting system clearer and more consistent. The changes will affect property owners, developers, and businesses applying for city permits.",
+    "tags": "Housing & Development,Government Operations",
+    "title": "Direct the City Administrator to reestablish a Permitting Improvement Team to lead the second phase of the Code Alignment Project"
+  },
+  "2026-204": {
+    "headline": "Portland sets 2026 homebuyer tax exemption price cap",
+    "summary": "Portland established a maximum home sale price to qualify for the 2026 Homebuyer Opportunity Limited Tax Exemption program. The program provides a ten-year property tax exemption on structural improvements for qualifying buyers. This price cap determines which property purchases will be eligible for the tax break.",
+    "tags": "Housing & Development,Budget & Finance",
+    "title": "Establish 2026 sale price cap for the Homebuyer Opportunity Limited Tax Exemption Program\u200b"
+  },
+  "2026-205": {
+    "headline": "City Pauses Income Limits for Housing Fee Exemptions",
+    "summary": "Portland is temporarily removing buyer income requirements for homeownership developments seeking exemptions from city infrastructure fees. Developers building homes for sale can now receive these fee waivers without verifying the buyer's income level. This change affects residential home builders and prospective buyers across the city.",
+    "tags": "Housing & Development",
+    "title": "Amend Partial and Full Exemptions of System Development Charges for Affordable Housing Developments Code to temporarily remove income requirements for homeownership units (amend Code Section 30.01.095)"
+  },
+  "2026-208": {
+    "headline": "Portland Appoints Clean Energy Board Members",
+    "summary": "New members will now help guide local climate and environmental funding decisions on the Portland Clean Energy Fund Committee. The fund provides grants for clean energy, energy efficiency, and job training programs in the city. This change affects Portland residents and community organizations applying for environmental project funding.",
+    "tags": "Parks & Environment,Government Operations",
+    "title": "\u200b\u200bAppoint members to the Portland Clean Energy Community Benefits Fund Committee\u200b"
+  },
+  "2026-209": {
+    "headline": "Portland Adds Funding Code for EV Charging Stations",
+    "summary": "Portland established a new city code section to create dedicated funding for electric vehicle charging stations. The rules outline how the city collects and spends money to build and maintain public charging infrastructure. This affects drivers, businesses, and city agencies involved in expanding electric vehicle access.",
+    "tags": "Transportation & Infrastructure,Budget & Finance",
+    "title": "Add Electric Vehicle Charging Systems Funding Code (add Code Chapter 26.11)"
+  },
+  "2026-210": {
+    "headline": "City Accepts Report on 2025 Council Agenda Items",
+    "summary": "Portland accepted formal recommendations reviewing how City Council agenda items were handled throughout 2025. The report tracks the final status of proposed city policies, ordinances, and council business. This document helps city staff and the public track the outcome of official items brought before the council.",
+    "tags": "Government Operations",
+    "title": "Accept recommendations in 2025 Agenda Item Disposition Report"
+  },
+  "2026-213": {
+    "headline": "Portland Restricts Turns on Red at High-Crash Streets",
+    "summary": "The Portland Bureau of Transportation will evaluate and restrict turns on red at traffic signals on streets with high crash rates. This change affects drivers, pedestrians, and cyclists using these intersections across the city.",
+    "tags": "Transportation & Infrastructure,Public Safety",
+    "title": "Direct the Portland Bureau of Transportation to evaluate and implement no turn on red restrictions at signalized intersections within the High Crash Network"
+  },
+  "2026-216": {
+    "headline": "Portland Extends Childcare Center Lease by 5 Years",
+    "summary": "The City of Portland is extending its lease for the CityKids Childcare and Development Center space for another five years. This agreement allows the facility to continue operating in its current location with Urban Office and Parking Facilities. The extension affects local families and staff who rely on the center for childcare services.",
+    "tags": "Contracts & Procurement,Government Operations",
+    "title": "Extend lease with Urban Office and Parking Facilities for the CityKids Childcare and Development Center space by five years (amend CLM Contract 10014)"
+  },
+  "2026-217": {
+    "headline": "Council Considers Appeals on Lloyd Center Master Plan",
+    "summary": "Community members and developers presented arguments regarding a long-term plan to redesign the Lloyd Center shopping mall property. The proposed master plan sets guidelines for future construction, public spaces, and land use in inner northeast Portland. The decision affects local business owners, nearby residents, and future development in the district.",
+    "tags": "Housing & Development",
+    "title": "Consider appeals of the Design Commission\u2019s approval of a voluntary Central City Master Plan Review and Adjustment Review for the Lloyd Center Central City Master Plan (LU 25-091308 CCMS AD)"
+  },
+  "2026-218": {
+    "headline": "City Revises Sewer and Stormwater Rates for 2026-27",
+    "summary": "Utility charges for Portland residents and businesses will change under updated sewer and stormwater rate schedules for the 2026-27 fiscal year. The adjusted fees determine how much property owners pay for city wastewater management and runoff services. The new rate structure will take effect during the upcoming budget period.",
+    "tags": "Budget & Finance,Parks & Environment",
+    "title": "*Revise sewer and stormwater rates, charges, and fees for FY 2026-27"
+  },
+  "2026-222": {
+    "headline": "Portland Allocates $18.9M to Restore Cut Frontline Jobs",
+    "summary": "Portland is reallocating nearly $19 million to restore frontline staff positions and public services that were previously cut from the city budget. Funding comes primarily from interest earned on the Portland Clean Energy Fund, along with other city and county resources. The money will also provide transition support for city employees affected by budget cuts.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "Amend the FY 2026-27 Budget to appropriate $13,076,892 in Portland Clean Energy Fund interest income, $5,491,002 other fund resources, and $335,000 in County IGA revenues to restore frontline positions and services reduced in the approved budget and to provide transition support for affected employees"
   },
   "2026-223": {
     "headline": "City Adopts FY 2026-27 Supplemental Budget",
@@ -11,11 +299,53 @@
     "tags": "Budget & Finance,Government Operations",
     "title": "Adopt a Supplemental Budget for FY 2026-27 to reduce potential risks to City services"
   },
+  "2026-224": {
+    "headline": "Two Reappointed to Prosper Portland Board",
+    "summary": "Marcelino Alvarez and Eric Cress will continue serving on the Prosper Portland Board of Commissioners through September 5, 2029. The board oversees the city's economic development agency, which manages urban renewal projects and local business programs. Their leadership affects city investment strategies and economic growth initiatives across Portland.",
+    "tags": "Government Operations,Housing & Development",
+    "title": "Reappoint Marcelino Alvarez and Eric Cress to the Prosper Portland Board of Commissioners for terms to expire September 5, 2029"
+  },
+  "2026-231": {
+    "headline": "Council Approves Meeting Records for May 2026",
+    "summary": "Official written records for city council meetings held between May 6 and May 27, 2026, are now finalized. These minutes serve as the formal public record of council discussions, votes, and decisions during that period. Portland residents can review these documents to track city government actions.",
+    "tags": "Government Operations",
+    "title": "Approve Council Minutes for May 6-27, 2026"
+  },
   "2026-236": {
     "headline": "Portland Leases Eastside Office for Safety Division",
     "summary": "Portland's Community Safety Division is securing a new eastside office through a five-year lease with American Property Management. The agreement provides space for staff who coordinate local safety and emergency response programs. The move affects eastside residents accessing division services and city staff working in the area.",
     "tags": "Public Safety,Contracts & Procurement",
     "title": "*Authorize a five-year lease with American Property Management for Community Safety Division eastside office"
+  },
+  "2026-238": {
+    "headline": "Portland Utility Board Gains New Voting Members",
+    "summary": "New voting members are joining the Portland Utility Board to help oversee the city's water and sewer services. The community board advises city officials on utility rates, policies, and major bureau spending. This change impacts residents who rely on city water and wastewater systems.",
+    "tags": "Government Operations",
+    "title": "Appoint voting members to the Portland Utility Board"
+  },
+  "2026-241": {
+    "headline": "City Approves Premium Pay for Preschool Assistants",
+    "summary": "Preschool for All assistants and aides represented by LIUNA Local 483 will receive premium pay under a new labor agreement. The extra compensation applies to eligible staff working in the early childhood education program. This change updates wage terms for these unionized preschool support workers.",
+    "tags": "Government Operations,Budget & Finance",
+    "title": "*Authorize Letter of Agreement with the Laborers\u2019 International Union of North America, Local 483 for premium pay to Assistants and Aides as defined in the Preschool for All Program"
+  },
+  "2026-242": {
+    "headline": "NW Portland Vacant Lot Rezoned for Parks Department",
+    "summary": "A vacant lot on NW 31st Avenue in Willamette Heights now has updated land use and zoning rules requested by Portland Parks and Recreation. The map changes allow the city parks department to officially manage the property under updated regulations. Nearby residents in Northwest Portland may see future park planning or development at the site.",
+    "tags": "Parks & Environment,Housing & Development",
+    "title": "Amend the Comprehensive Plan Map and Zoning Map for a vacant lot on NW 31st Ave described as Willamette Heights Addition, Block 18, Lot 14 at the request of Portland Parks and Recreation (LU 26-007966 CP ZC)"
+  },
+  "2026-243": {
+    "headline": "City Renames Cesar E. Chavez Blvd to Campesinos Blvd",
+    "summary": "Cesar E. Chavez Boulevard will be renamed Campesinos Boulevard through a special exception to city street-naming rules. The change affects residents, property owners, and businesses along the corridor who must update address records. Emergency services and mapping tools will also transition to using the new street name.",
+    "tags": "Transportation & Infrastructure,Government Operations",
+    "title": "*Authorize exception to Code Chapter 17.93 Renaming City Streets and authorize the renaming of Cesar E. Chavez Blvd to Campesinos Blvd (allow exceptions to Code Sections 17.93.010, 17.93.020, 17.93.030, 17.93.040 and 17.93.050)"
+  },
+  "2026-247": {
+    "headline": "Portland Begins Foreclosure on 7545 NE Sandy Blvd",
+    "summary": "The City of Portland is moving forward with foreclosure on a property located at 7545 NE Sandy Blvd due to unpaid city liens. This step allows the city to recover delinquent debt owed by the property owner. If the unpaid balance is not resolved, the property may eventually be sold at auction.",
+    "tags": "Budget & Finance,Housing & Development",
+    "title": "Initiate foreclosure action on 7545 NE Sandy Blvd for the collection of delinquent City Liens placed against the property"
   },
   "2026-248": {
     "headline": "City Begins Foreclosure on NE Sandy Property",
@@ -29,11 +359,41 @@
     "tags": "Budget & Finance,Housing & Development",
     "title": "Initiate foreclosure action on N Columbia Blvd for the collection of delinquent City Liens placed against the property"
   },
+  "2026-253": {
+    "headline": "City Starts Foreclosure on SE Division Street Property",
+    "summary": "The city is starting a foreclosure process on a property located at 7101\u20137103 SE Division Street to collect unpaid city liens. This step allows the city to recover delinquent fees owed by the owner. The action directly affects the property owner and any current occupants.",
+    "tags": "Housing & Development,Budget & Finance",
+    "title": "Initiate foreclosure action on 7101\u20137103 SE Division St for the collection of delinquent City Liens placed against the property"
+  },
+  "2026-256": {
+    "headline": "City Initiates Foreclosure on NE Alberta Street Property",
+    "summary": "The City of Portland is beginning foreclosure proceedings against a commercial property located at 2734-2738 NE Alberta Street. The action allows the city to collect overdue funds from unpaid liens placed on the address. This change affects the property owner and enables the city to recover outstanding debts.",
+    "tags": "Budget & Finance,Government Operations",
+    "title": "Initiate foreclosure action on 2734-2738 NE Alberta St for the collection of delinquent City Liens placed against the property"
+  },
+  "2026-260": {
+    "headline": "City Begins Foreclosure on SE Lambert Street Home",
+    "summary": "Portland is initiating foreclosure on the property at 5706 SE Lambert St to collect unpaid city liens. This process allows the city to recover debts owed for unpaid municipal fees and assessments. If the outstanding balance is not paid, the property may be sold at auction.",
+    "tags": "Budget & Finance,Housing & Development",
+    "title": "Initiate foreclosure action on 5706 SE Lambert St for the collection of delinquent City Liens placed against the property"
+  },
   "2026-267": {
     "headline": "City Pays $287,500 Settlement for Water Bureau Crash",
     "summary": "The City of Portland will pay $287,500 to settle a lawsuit over a collision involving a Portland Water Bureau dump truck. The payment resolves claims made by an individual for bodily injuries suffered in the crash.",
     "tags": "Budget & Finance,Government Operations",
     "title": "*Pay settlement of Michael Duffer bodily injury lawsuit in the sum of $287,500 resulting from a collision with a City dump truck involving the Portland Water Bureau"
+  },
+  "2026-270": {
+    "headline": "Portland Advances New PSU Arts Center and Keller Plans",
+    "summary": "Portland is moving forward with plans for a new performing arts venue at Portland State University capable of hosting Broadway shows. The city will also begin planning for the future of the historic Keller Auditorium. These steps affect local arts groups, downtown visitors, and the university community.",
+    "tags": "Housing & Development,Government Operations",
+    "title": "Accept the Future of Large-Scale Performing Arts recommendations to advance a new Broadway-capable venue as part of the proposed Performing Arts + Culture Center at Portland State University, and initiate planning for the future of the Keller Auditorium"
+  },
+  "2026-272": {
+    "headline": "City Allocates $35 Million in Federal Loan Funds",
+    "summary": "Portland is adding $35 million in federal funding to support local community development projects. These funds will allow organizations to access lower-cost loans for housing and economic development across the city. The program provides financing to help build infrastructure and expand local services.",
+    "tags": "Budget & Finance,Housing & Development",
+    "title": "Appropriate grant award of $35 million for Section 108 Loan Guarantee Program"
   },
   "2026-277": {
     "headline": "City accepts $207K grant to curb street racing",
@@ -59,11 +419,47 @@
     "tags": "Housing & Development,Contracts & Procurement",
     "title": "Direct the City Administrator to advance a process to identify a development partner for City-owned properties adjacent to the Moda Center"
   },
+  "2026-289": {
+    "headline": "City Appoints New Portlanders Policy Commissioners",
+    "summary": "New members were appointed to the New Portlanders Policy Commission for terms starting in September 2026. This advisory body helps guide city decisions on issues affecting immigrant and refugee communities. The appointments fill upcoming vacancies on the civic board.",
+    "tags": "Government Operations",
+    "title": "Appoint members to the New Portlanders Policy Commission for terms beginning September 2, 2026"
+  },
   "2026-294": {
     "headline": "City to Subsidize Transit Passes for Employees",
     "summary": "A new pilot program will subsidize public transit passes for Portland city employees. Funding for the program comes from an increase of up to $245,000 in city bureau rates for the 2026-27 fiscal year. The decision affects municipal workers and city bureau budgets.",
     "tags": "Transportation & Infrastructure,Government Operations",
     "title": "*Authorize an increase up to $245,000 in bureau rates for FY 2026-27 to implement a pilot program to subsidize transit passes for City employees"
+  },
+  "2026-299": {
+    "headline": "Council Urges Transparency in Data Center Agreements",
+    "summary": "Portland's City Administrator is asked to stop signing non-disclosure agreements regarding potential data center projects. The administrator must now inform City Council about inquiries from data center developers and involve the public in future deal reviews. This affects how technology companies negotiate with the city and gives residents earlier notice of proposed developments.",
+    "tags": "Government Operations,Contracts & Procurement",
+    "title": "Urge the City Administrator to refrain from signing data center non-disclosure agreements, notify City Council of inquiries for data center deals, and engage in transparent public processes related to data centers"
+  },
+  "2026-306": {
+    "headline": "City creates new Council Public Information Officer job",
+    "summary": "Portland established a new non-union staff position for a Council Public Information Officer. The role includes a newly defined salary range to manage public communications for the City Council. This change affects city administrative hiring and staff structure.",
+    "tags": "Government Operations",
+    "title": "Create new non-represented classification of Council Public Information Officer and establish a compensation range for this classification"
+  },
+  "2026-307": {
+    "headline": "Portland Creates New Data and Privacy Officer Role",
+    "summary": "Portland created a new management position for a City Data and Privacy Officer and set its pay range. The official will oversee how the city handles public data and protects resident privacy. This change updates city job classifications and establishes leadership for municipal data policies.",
+    "tags": "Government Operations",
+    "title": "Create new non-represented classification of City Data and Privacy Officer and establish a compensation range for this classification"
+  },
+  "2026-310": {
+    "headline": "Omar Salomon Appointed to Homelessness Oversight Committee",
+    "summary": "Omar K. Salomon will join the Steering and Oversight Committee for the Homelessness Response System. The committee helps guide local policies and programs aimed at addressing homelessness. Salomon will serve in this advisory role through September 30, 2027.",
+    "tags": "Government Operations,Housing & Development",
+    "title": "Appoint Omar K. Salomon to the Steering and Oversight Committee for the Homelessness Response System for a one-year term to expire September 30, 2027"
+  },
+  "2026-320": {
+    "headline": "City Council Approves Summer 2026 Meeting Minutes",
+    "summary": "Official written records for Portland City Council meetings held between June 3 and July 30, 2026, are now formally adopted. These public records document the council's discussions, votes, and official actions during that period. Residents can access these published minutes to review past city decisions.",
+    "tags": "Government Operations",
+    "title": "Approve Council Minutes for June 3 - July 30, 2026"
   },
   "2026-339": {
     "headline": "City Settles Bicycle Crash Lawsuit for $125,000",

@@ -32,7 +32,7 @@ HEADERS = {
     )
 }
 DEFAULT_DB_PATH = "../prisma/dev.db"
-GEMINI_CALL_INTERVAL_SECONDS = 13
+GEMINI_CALL_INTERVAL_SECONDS = 1
 GOVERNING_BODY = "portland_council"
 
 
@@ -115,7 +115,7 @@ def main():
                     cache_hits += 1
                 else:
                     result = enrich_document(title)
-                    # Gemini's free tier allows 5 requests/minute; wait after every real
+                    # Stay well under Gemini's rate limit (Tier 1 billing); wait after every real
                     # call (failed ones included) so a 429 doesn't cascade.
                     time.sleep(GEMINI_CALL_INTERVAL_SECONDS)
                     if result is None:

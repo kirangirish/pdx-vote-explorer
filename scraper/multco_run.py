@@ -34,7 +34,7 @@ HEADERS = {
     )
 }
 DEFAULT_DB_PATH = "../prisma/dev.db"
-GEMINI_CALL_INTERVAL_SECONDS = 13
+GEMINI_CALL_INTERVAL_SECONDS = 1
 GOVERNING_BODY = "multnomah_county"
 # The real minutes narrative is only ever the first few pages; everything
 # after "CAPTIONS" is a 100+ page auto-generated transcript. Capping the
@@ -137,7 +137,7 @@ def main():
                     cache_hits += 1
                 else:
                     result = enrich_document(title)
-                    # Gemini's free tier allows 5 requests/minute; wait after every real
+                    # Stay well under Gemini's rate limit (Tier 1 billing); wait after every real
                     # call (failed ones included) so a 429 doesn't cascade.
                     time.sleep(GEMINI_CALL_INTERVAL_SECONDS)
                     if result is None:
