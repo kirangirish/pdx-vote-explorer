@@ -1,22 +1,13 @@
 import Link from "next/link";
-import { Star, MapPin, ArrowRight } from "lucide-react";
+import { Star, MapPin } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
-import { DecisionsList } from "@/components/DecisionsList";
 import { SectionTabs } from "@/components/SectionTabs";
 import { GOVERNING_BODIES, type GoverningBody } from "@/lib/governing-body";
 
-const RECENT_DECISIONS_LIMIT = 3;
-
 async function getDashboardData(governingBody: GoverningBody) {
   const members = await prisma.councilMember.findMany({ where: { governingBody } });
-  const recentDecisions = await prisma.councilDocument.findMany({
-    where: { governingBody },
-    orderBy: { voteDate: "desc" },
-    take: RECENT_DECISIONS_LIMIT,
-    include: { votes: true },
-  });
-  return { members, recentDecisions };
+  return { members };
 }
 
 // Tailwind needs each class string to appear literally in source -- can't
@@ -30,7 +21,7 @@ const DISTRICT_BADGE_CLASSES: Record<number, string> = {
 
 export async function Dashboard({ governingBody }: { governingBody: GoverningBody }) {
   const config = GOVERNING_BODIES[governingBody];
-  const { members, recentDecisions } = await getDashboardData(governingBody);
+  const { members } = await getDashboardData(governingBody);
 
   const byDistrict: Record<number, Member[]> = {};
   for (const d of config.districts) byDistrict[d] = [];
@@ -46,25 +37,6 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
   return (
     <div className="space-y-8">
       <SectionTabs governingBody={governingBody} />
-
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Latest Decisions</h2>
-          <Link
-            href={config.decisionsHref}
-            className="flex items-center gap-1 text-sm font-semibold text-pdx-blue hover:gap-1.5 transition-all"
-          >
-            See all decisions
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-        <div className="max-h-[32rem] overflow-y-auto pr-1">
-          <DecisionsList
-            decisions={recentDecisions}
-            categoryHref={(tag) => `${config.decisionsHref}?category=${encodeURIComponent(tag)}`}
-          />
-        </div>
-      </section>
 
       <section>
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
