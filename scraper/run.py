@@ -32,6 +32,7 @@ HEADERS = {
     )
 }
 DEFAULT_DB_PATH = "../prisma/dev.db"
+GEMINI_CALL_INTERVAL_SECONDS = 13
 GOVERNING_BODY = "portland_council"
 
 
@@ -114,11 +115,13 @@ def main():
                     cache_hits += 1
                 else:
                     result = enrich_document(title)
+                    # Gemini's free tier allows 5 requests/minute; wait after every real
+                    # call (failed ones included) so a 429 doesn't cascade.
+                    time.sleep(GEMINI_CALL_INTERVAL_SECONDS)
                     if result is None:
                         enrich_failures += 1
                         continue
                     cache[doc_number] = {"title": title, **result}
-                    time.sleep(1)  # be polite to the Gemini API -- only for real calls, not cache hits
 
                 upsert_enrichment(cursor, doc_number, result["headline"], result["summary"], result["tags"])
                 enriched += 1

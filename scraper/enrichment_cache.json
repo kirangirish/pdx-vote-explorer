@@ -1,4 +1,10 @@
 {
+  "2026-186": {
+    "headline": "Portland Creates Psychedelic Health and Safety Rules",
+    "summary": "Portland established a new city code governing psychedelic health and safety. The regulations set local guidelines and safety standards for the use and administration of psychedelic substances. These rules apply to service providers, businesses, and residents participating in regulated psychedelic programs within the city.",
+    "tags": "Public Safety,Government Operations",
+    "title": "Add Psychedelic Health and Safety Code (add Code Chapter 14B.140)"
+  },
   "2026-223": {
     "headline": "City Adopts FY 2026-27 Supplemental Budget",
     "summary": "Portland updated its 2026-27 budget to adjust city spending and manage financial risks to municipal services. The changes reallocate funds across city departments to help maintain existing public programs and services.",
@@ -11,11 +17,35 @@
     "tags": "Public Safety,Contracts & Procurement",
     "title": "*Authorize a five-year lease with American Property Management for Community Safety Division eastside office"
   },
+  "2026-248": {
+    "headline": "City Begins Foreclosure on NE Sandy Property",
+    "summary": "The City of Portland is starting foreclosure proceedings on a property located at 7545 NE Sandy Boulevard to collect unpaid city liens. This process allows the city to recover unpaid debt owed by the property owner. If the debt remains unpaid, the property may be sold through a court process.",
+    "tags": "Budget & Finance,Housing & Development",
+    "title": "Initiate foreclosure action on 7545 WI/NE Sandy Blvd for the collection of delinquent City Liens placed against the property"
+  },
+  "2026-250": {
+    "headline": "City Begins Foreclosure on N Columbia Blvd Property",
+    "summary": "Portland is initiating foreclosure on a North Columbia Boulevard property to collect unpaid city liens. The action allows the city to claim or sell the site to recover unpaid debts. It directly impacts the property owner while enforcing local debt collection policies.",
+    "tags": "Budget & Finance,Housing & Development",
+    "title": "Initiate foreclosure action on N Columbia Blvd for the collection of delinquent City Liens placed against the property"
+  },
   "2026-267": {
     "headline": "City Pays $287,500 Settlement for Water Bureau Crash",
     "summary": "The City of Portland will pay $287,500 to settle a lawsuit over a collision involving a Portland Water Bureau dump truck. The payment resolves claims made by an individual for bodily injuries suffered in the crash.",
     "tags": "Budget & Finance,Government Operations",
     "title": "*Pay settlement of Michael Duffer bodily injury lawsuit in the sum of $287,500 resulting from a collision with a City dump truck involving the Portland Water Bureau"
+  },
+  "2026-277": {
+    "headline": "City accepts $207K grant to curb street racing",
+    "summary": "Portland is accepting $207,411 in grant funding to address illegal street racing and street takeovers. The money will support targeted law enforcement patrols and enforcement efforts across the city. This affects drivers and residents living in neighborhoods impacted by street takeovers.",
+    "tags": "Public Safety,Budget & Finance",
+    "title": "*Appropriate grant award of $207,411 for speed racing street takeover"
+  },
+  "2026-278": {
+    "headline": "City Accepts $103,069 Grant for Traffic Enforcement",
+    "summary": "Portland will use a $103,069 grant to increase traffic enforcement patrols across the city. The funds will pay for officer overtime focused on traffic safety and law enforcement. This change affects drivers, cyclists, and pedestrians traveling on local streets.",
+    "tags": "Public Safety,Transportation & Infrastructure",
+    "title": "*Appropriate grant award of $103,069 for expanded traffic enforcement"
   },
   "2026-280": {
     "headline": "City approves terms for Moda Center arena renovation",
@@ -34,5 +64,11 @@
     "summary": "A new pilot program will subsidize public transit passes for Portland city employees. Funding for the program comes from an increase of up to $245,000 in city bureau rates for the 2026-27 fiscal year. The decision affects municipal workers and city bureau budgets.",
     "tags": "Transportation & Infrastructure,Government Operations",
     "title": "*Authorize an increase up to $245,000 in bureau rates for FY 2026-27 to implement a pilot program to subsidize transit passes for City employees"
+  },
+  "2026-339": {
+    "headline": "City Settles Bicycle Crash Lawsuit for $125,000",
+    "summary": "The City of Portland will pay $125,000 to settle a lawsuit with a cyclist injured in a crash involving the Portland Bureau of Transportation. The payment covers bodily injuries sustained by Joseph Rios during the incident. This agreement resolves all legal claims against the city related to the crash.",
+    "tags": "Transportation & Infrastructure,Budget & Finance",
+    "title": "*Pay settlement of Joseph Rios bodily injury lawsuit in the sum of $125,000 resulting from a bicycle crash involving Portland Bureau of Transportation"
   }
 }
