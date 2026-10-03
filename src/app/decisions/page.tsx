@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, X } from "lucide-react";
+import { X } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { DecisionsList } from "@/components/DecisionsList";
+import { SectionTabs } from "@/components/SectionTabs";
 import { categoryStyle } from "@/lib/categories";
 import { GOVERNING_BODIES } from "@/lib/governing-body";
 
@@ -28,10 +29,7 @@ export default async function DecisionsPage({
 
   return (
     <div className="space-y-8">
-      <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-pdx-blue hover:gap-2.5 transition-all">
-        <ArrowLeft size={15} />
-        Back to dashboard
-      </Link>
+      <SectionTabs governingBody="portland_council" />
 
       <div>
         <h1 className="text-2xl font-black tracking-tight text-gray-900">All Decisions</h1>

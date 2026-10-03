@@ -13,7 +13,9 @@ export function BodyTabs() {
     <div className="flex gap-1 bg-gray-100 rounded-full p-1">
       {TAB_ORDER.map((body) => {
         const config = GOVERNING_BODIES[body];
-        const isActive = pathname === config.homeHref;
+        // Active on any of the body's own views (overview, split votes, all
+        // decisions). Member and document pages are shared, so neither tab lights up.
+        const isActive = [config.homeHref, config.splitVotesHref, config.decisionsHref].includes(pathname);
         return (
           <Link
             key={body}

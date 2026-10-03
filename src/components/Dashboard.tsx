@@ -3,6 +3,7 @@ import { Star, MapPin, ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar, type Member } from "@/components/MemberAvatar";
 import { DecisionsList } from "@/components/DecisionsList";
+import { SectionTabs } from "@/components/SectionTabs";
 import { GOVERNING_BODIES, type GoverningBody } from "@/lib/governing-body";
 
 const RECENT_DECISIONS_LIMIT = 3;
@@ -44,6 +45,8 @@ export async function Dashboard({ governingBody }: { governingBody: GoverningBod
 
   return (
     <div className="space-y-8">
+      <SectionTabs governingBody={governingBody} />
+
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Latest Decisions</h2>
