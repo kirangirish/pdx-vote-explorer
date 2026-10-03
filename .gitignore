@@ -53,3 +53,7 @@ scraper/**/*.pyc
 # each dev generates their own via `npx prisma migrate deploy` + the scraper.
 /prisma/dev.db
 /prisma/*.db-journal
+
+# supabase cli local state
+/supabase/.temp
+.env.supabase.local

@@ -20,7 +20,7 @@ export default async function CountyDecisionsPage({
   const decisions = await prisma.councilDocument.findMany({
     where: {
       governingBody: "multnomah_county",
-      ...(category ? { categoryTags: { contains: category } } : {}),
+      ...(category ? { categoryTags: { contains: category, mode: "insensitive" } } : {}),
     },
     orderBy: { voteDate: "desc" },
     include: { votes: true },

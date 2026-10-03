@@ -12,16 +12,16 @@ export async function GET(request: NextRequest) {
 
   const [members, documents] = await Promise.all([
     prisma.councilMember.findMany({
-      where: { fullName: { contains: q } },
+      where: { fullName: { contains: q, mode: "insensitive" } },
       select: { slug: true, fullName: true, photoUrl: true, district: true, governingBody: true },
       take: RESULT_LIMIT,
     }),
     prisma.councilDocument.findMany({
       where: {
         OR: [
-          { title: { contains: q } },
-          { aiHeadline: { contains: q } },
-          { categoryTags: { contains: q } },
+          { title: { contains: q, mode: "insensitive" } },
+          { aiHeadline: { contains: q, mode: "insensitive" } },
+          { categoryTags: { contains: q, mode: "insensitive" } },
         ],
       },
       select: { docNumber: true, title: true, aiHeadline: true, governingBody: true, voteDate: true },

@@ -16,7 +16,7 @@ import requests
 from dotenv import load_dotenv
 
 from parser import parse_votes_page
-from db import get_connection, save_records, upsert_enrichment
+from db import default_db_target, get_connection, save_records, upsert_enrichment
 from enrich import enrich_document
 from enrichment_cache import load_cache, save_cache
 from roster import lookup as roster_lookup
@@ -64,7 +64,7 @@ def main():
     parser.add_argument("--pages", type=int, default=1, help="Number of most-recent pages to fetch (default: 1)")
     parser.add_argument("--dry-run", action="store_true", help="Parse only, don't write to the database")
     parser.add_argument("--no-ai", action="store_true", help="Skip AI enrichment (headline/summary/tags)")
-    parser.add_argument("--db", default=DEFAULT_DB_PATH, help=f"Path to the sqlite db (default: {DEFAULT_DB_PATH})")
+    parser.add_argument("--db", default=default_db_target(), help="Postgres URL or path to a sqlite db (default: $DATABASE_URL if it is a Postgres URL, else " + DEFAULT_DB_PATH + ")")
     args = parser.parse_args()
 
     all_records = []
