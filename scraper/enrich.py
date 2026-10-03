@@ -37,9 +37,18 @@ CATEGORY_TAXONOMY = [
 
 MODEL = "gemini-3.6-flash"
 
-PROMPT_TEMPLATE = """You are writing for a nonpartisan civic transparency tool that helps Portland, Oregon residents understand what their City Council voted on.
+# Who voted, so the model names the right government. Without this, county
+# items came back as "City ..." headlines.
+BODY_CONTEXT = {
+    "portland_council": "the Portland City Council (the City of Portland, Oregon)",
+    "multnomah_county": "the Multnomah County Board of Commissioners (Multnomah County, Oregon -- a county government, not the City of Portland)",
+}
 
-Given a council document's title, produce:
+PROMPT_TEMPLATE = """You are writing for a nonpartisan civic transparency tool that helps Portland-area residents understand what their local governments voted on.
+
+This item was voted on by {body}. When the headline or summary names who acted, name that body -- never a different government.
+
+Given the document's title, produce:
 1. "headline": a newspaper-style headline, 60 characters or fewer, stating the action taken (not the document number).
 2. "summary": 2-3 sentences at an 8th-grade reading level, stating what changed and who it affects. No jargon, no document-number references, no procedural filler like "Council voted to approve...". Lead with the substance.
 3. "tags": 1 or 2 tags chosen ONLY from this exact list: {taxonomy}
@@ -61,11 +70,15 @@ def _get_client():
     return _client
 
 
-def enrich_document(title: str) -> dict | None:
+def enrich_document(title: str, governing_body: str = "portland_council") -> dict | None:
     """Returns {"headline": ..., "summary": ..., "tags": "Tag One,Tag Two"}
     or None if generation failed or produced something unusable -- callers
     should skip and leave the document for the next run to retry."""
-    prompt = PROMPT_TEMPLATE.format(taxonomy=", ".join(CATEGORY_TAXONOMY), title=title)
+    prompt = PROMPT_TEMPLATE.format(
+        body=BODY_CONTEXT[governing_body],
+        taxonomy=", ".join(CATEGORY_TAXONOMY),
+        title=title,
+    )
     try:
         response = _get_client().models.generate_content(
             model=MODEL,

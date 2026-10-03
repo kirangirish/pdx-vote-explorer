@@ -136,7 +136,7 @@ def main():
                     result = cached
                     cache_hits += 1
                 else:
-                    result = enrich_document(title)
+                    result = enrich_document(title, GOVERNING_BODY)
                     # Stay well under Gemini's rate limit (Tier 1 billing); wait after every real
                     # call (failed ones included) so a 429 doesn't cascade.
                     time.sleep(GEMINI_CALL_INTERVAL_SECONDS)
