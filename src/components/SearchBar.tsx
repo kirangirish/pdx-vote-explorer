@@ -32,14 +32,9 @@ export function SearchBar() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setMembers([]);
-      setDocuments([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+    if (query.trim().length < 2) return;
     const timeout = setTimeout(async () => {
+      setLoading(true);
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
@@ -65,6 +60,8 @@ export function SearchBar() {
   function goTo(href: string) {
     setOpen(false);
     setQuery("");
+    setMembers([]);
+    setDocuments([]);
     router.push(href);
   }
 
@@ -77,7 +74,15 @@ export function SearchBar() {
       <input
         type="text"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          setQuery(value);
+          if (value.trim().length < 2) {
+            setMembers([]);
+            setDocuments([]);
+            setLoading(false);
+          }
+        }}
         onFocus={() => setOpen(true)}
         onKeyDown={(e) => {
           if (e.key === "Escape") setOpen(false);
