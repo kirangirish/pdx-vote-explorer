@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-
-const RESULT_LIMIT = 5;
+import { search } from "@/lib/search";
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
@@ -10,25 +8,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ members: [], documents: [] });
   }
 
-  const [members, documents] = await Promise.all([
-    prisma.councilMember.findMany({
-      where: { fullName: { contains: q, mode: "insensitive" } },
-      select: { slug: true, fullName: true, photoUrl: true, district: true, governingBody: true },
-      take: RESULT_LIMIT,
-    }),
-    prisma.councilDocument.findMany({
-      where: {
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { aiHeadline: { contains: q, mode: "insensitive" } },
-          { categoryTags: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      select: { docNumber: true, title: true, aiHeadline: true, governingBody: true, voteDate: true },
-      orderBy: { voteDate: "desc" },
-      take: RESULT_LIMIT,
-    }),
-  ]);
+  const { members, documents } = await search(q);
 
   return NextResponse.json({ members, documents });
 }
