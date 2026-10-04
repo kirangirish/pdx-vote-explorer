@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "postinstall": "prisma generate --config prisma7.config.ts",
     "db:migrate": "prisma migrate deploy --config prisma7.config.ts"
   },
@@ -31,7 +32,8 @@
     "eslint-config-next": "16.3.4",
     "prisma": "^7.10.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.0.0"
   },
   "allowScripts": {
     "@prisma/engines@7.10.0": true,
