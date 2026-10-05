@@ -46,7 +46,7 @@ export default function AboutPage() {
         <p className="text-lg text-gray-700 leading-relaxed">
           PDX Vote Explorer exists to make it easy for residents to see how their elected officials
           actually vote — in plain language, for free, sourced back to the real record every time.
-          Here&apos;s what that actually means in practice.
+          Here's what that actually means in practice.
         </p>
       </div>
 
